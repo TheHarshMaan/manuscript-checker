@@ -38,10 +38,10 @@ python checker.py my_folder                    # every .docx in a folder
 python checker.py my_folder --sheets           # also send results to Google Sheets
 ```
 
-Try it on the included samples:
+Try it on the included batch:
 
 ```
-python checker.py samples
+python checker.py batch
 ```
 
 `sample_manuscript_clean.docx` should come back **Ready**; the others contain deliberately planted problems.
