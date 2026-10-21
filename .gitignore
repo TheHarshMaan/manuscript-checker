@@ -1,0 +1,12 @@
+# Never upload these to GitHub
+google_key.json
+*.json
+
+# Reports and test output
+screening_report.xlsx
+batch/
+test_batch/
+
+# Python clutter
+__pycache__/
+~$*
