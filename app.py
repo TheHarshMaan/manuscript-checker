@@ -9,6 +9,7 @@ Hosted version: deploy this repository on Streamlit Community Cloud (see README)
 Colours live in .streamlit/config.toml; the logo lives in assets/.
 """
 
+import base64
 import io
 from pathlib import Path
 
@@ -27,66 +28,79 @@ BRAND = "The Grey Swan Editorial"
 TAGLINE = "Smart publishing tools for authors and publishers"
 SITE_URL = ""
 
-# Brand colours (also set in .streamlit/config.toml)
-INK = "#E8E6E1"        # warm off-white text
-MUTED = "#A3A9AE"      # secondary text
-COPPER = "#C9814F"     # accent
-CARD = "#1B1F23"       # raised surfaces
-LINE = "#2C3238"       # hairlines
+# Brand colours, taken from the logo (also set in .streamlit/config.toml)
+INK = "#ECE8E1"        # warm ivory text
+MUTED = "#A9A49B"      # secondary text
+GOLD = "#C69F70"       # antique gold accent
+CARD = "#1A1D20"       # raised surfaces
+LINE = "#2E2A24"       # warm hairlines
 STATUS_COLOUR = {"Missing": "#E8907F", "Concern": "#E0B86A"}
 
 STYLE = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500&display=swap');
 
 html, body, .stApp, .stMarkdown, button, input, textarea, label {{
     font-family: 'IBM Plex Sans', sans-serif;
 }}
-h1, h2, h3, .gs-serif {{
-    font-family: 'Instrument Serif', Georgia, serif !important;
-    font-weight: 400 !important;
-    letter-spacing: 0.2px;
+h1, h2, h3 {{
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px;
 }}
-.block-container {{ padding-top: 2.5rem; max-width: 1200px; }}
+.block-container {{ padding-top: 2.2rem; max-width: 1180px; }}
 [data-testid="stSidebar"] {{ border-right: 1px solid {LINE}; }}
 
-.gs-header {{ display: flex; align-items: center; gap: 22px; margin: 0 0 6px; }}
-.gs-header svg {{ width: 76px; height: 76px; flex: none; }}
-.gs-eyebrow {{ color: {COPPER}; font-size: 0.78rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; }}
-.gs-eyebrow a {{ color: {COPPER}; text-decoration: none; }}
-.gs-title {{ font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(2.1rem, 4.5vw, 3.2rem);
-             line-height: 1.05; color: {INK}; margin: 4px 0 0; }}
-.gs-title em {{ color: {MUTED}; }}
-.gs-lead {{ color: {MUTED}; font-size: 1.02rem; line-height: 1.6; max-width: 760px; margin: 18px 0 22px; }}
-.gs-rule {{ border: 0; border-top: 1px solid {LINE}; margin: 6px 0 22px; }}
+.gs-header {{ display: flex; align-items: center; gap: 28px; margin: 0 0 4px; }}
+.gs-header img {{ height: 170px; width: auto; flex: none; }}
+.gs-eyebrow {{ font-family: 'Cinzel', 'Trajan Pro', Georgia, serif; color: {GOLD};
+               font-size: 0.95rem; letter-spacing: 5px; text-transform: uppercase; }}
+.gs-eyebrow a {{ color: {GOLD}; text-decoration: none; }}
+.gs-eyebrow span {{ color: {MUTED}; letter-spacing: 4px; }}
+.gs-title {{ font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500;
+             font-size: clamp(2.3rem, 5vw, 3.6rem); line-height: 1.02; color: {INK}; margin: 8px 0 0; }}
+.gs-title em {{ color: {GOLD}; }}
 
+.gs-ornament {{ display: flex; align-items: center; gap: 14px; margin: 22px 0 20px; max-width: 760px; }}
+.gs-ornament::before, .gs-ornament::after {{ content: ""; flex: 1; height: 1px; background: {GOLD}; opacity: 0.55; }}
+.gs-ornament svg {{ width: 14px; height: 14px; flex: none; }}
+
+.gs-lead {{ color: {MUTED}; font-size: 1.02rem; line-height: 1.65; max-width: 760px; margin: 0 0 22px; }}
 .gs-card {{ background: {CARD}; border: 1px solid {LINE}; border-radius: 10px;
             padding: 16px 20px; margin: 0 0 26px; color: {MUTED}; font-size: 0.93rem; line-height: 1.6; }}
 .gs-card b {{ color: {INK}; font-weight: 500; }}
 
-.gs-brand {{ font-family: 'Instrument Serif', Georgia, serif; font-size: 1.45rem; color: {INK}; line-height: 1.1; }}
-.gs-brand a {{ color: {INK}; text-decoration: none; }}
-.gs-tag {{ color: {MUTED}; font-size: 0.82rem; margin-top: 4px; }}
+.gs-side-logo {{ display: block; width: 100%; max-width: 250px; margin: -10px auto 0; }}
+.gs-tag {{ color: {MUTED}; font-size: 0.82rem; text-align: center; margin: 2px 0 0; }}
+.gs-tag a, .gs-foot a {{ color: {GOLD}; }}
+.gs-rule {{ border: 0; border-top: 1px solid {LINE}; margin: 18px 0 18px; }}
 .gs-foot {{ color: {MUTED}; font-size: 0.82rem; text-align: center; padding: 10px 0 4px; }}
-.gs-foot a, .gs-tag a {{ color: {COPPER}; }}
+.gs-foot .gs-name {{ font-family: 'Cinzel', Georgia, serif; color: {GOLD}; letter-spacing: 2px; }}
 
-@media (max-width: 640px) {{
-    .gs-header {{ gap: 14px; }}
-    .gs-header svg {{ width: 54px; height: 54px; }}
+@media (max-width: 680px) {{
+    .gs-header {{ flex-direction: column; align-items: flex-start; gap: 12px; }}
+    .gs-header img {{ height: 120px; }}
+    .gs-eyebrow {{ letter-spacing: 3px; font-size: 0.8rem; }}
 }}
 </style>
 """
+
+STAR = (f'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 C10.8 6.5 13.5 9.2 20 10 '
+        f'C13.5 10.8 10.8 13.5 10 20 C9.2 13.5 6.5 10.8 0 10 C6.5 9.2 9.2 6.5 10 0 Z" fill="{GOLD}"/></svg>')
+
+
+def image_tag(filename, alt, css_class=""):
+    """An <img> with the picture embedded, so it works on any host without serving files."""
+    path = ASSETS / filename
+    if not path.exists():
+        return ""
+    data = base64.b64encode(path.read_bytes()).decode()
+    return f'<img src="data:image/png;base64,{data}" alt="{alt}" class="{css_class}">'
 
 
 def brand_name():
     """The brand name, as a link if the website address has been filled in."""
     return f'<a href="{SITE_URL}" target="_blank">{BRAND}</a>' if SITE_URL else BRAND
-
-
-def logo_svg():
-    """The swan mark as inline SVG (decorative here, since the brand name sits beside it)."""
-    svg = (ASSETS / "grey_swan_mark.svg").read_text(encoding="utf-8")
-    return svg.replace('role="img" aria-label="The Grey Swan"', 'aria-hidden="true"')
 
 
 def run_checks(name, data, settings):
@@ -113,9 +127,18 @@ def issues_table(issues):
     return styler.applymap(colour, subset=["Status"])
 
 
+def eyebrow():
+    """'THE GREY SWAN · EDITORIAL' in Roman capitals, linked to the website when there is one."""
+    name = "The Grey Swan"
+    if SITE_URL:
+        name = f'<a href="{SITE_URL}" target="_blank">{name}</a>'
+    return f'{name} <span>· Editorial</span>'
+
+
 def footer():
-    st.markdown(f'<hr class="gs-rule" style="margin-top:40px"><div class="gs-foot">© {brand_name()} · '
-                f'Rule-based checker built in Python · <a href="{GITHUB_URL}" target="_blank">View the code</a></div>',
+    st.markdown(f'<div class="gs-ornament" style="margin:44px auto 8px">{STAR}</div>'
+                f'<div class="gs-foot">© <span class="gs-name">{BRAND}</span> · Rule-based checker built in Python · '
+                f'<a href="{GITHUB_URL}" target="_blank">View the code</a></div>',
                 unsafe_allow_html=True)
 
 
@@ -125,18 +148,19 @@ def main():
                        page_icon=str(icon) if icon.exists() else None, layout="wide")
     st.markdown(STYLE, unsafe_allow_html=True)
 
-    if hasattr(st, "logo") and (ASSETS / "grey_swan_mark.png").exists():
-        st.logo(str(ASSETS / "grey_swan_mark.png"), size="large")
+    if hasattr(st, "logo") and (ASSETS / "grey_swan_icon.png").exists():
+        st.logo(str(ASSETS / "grey_swan_icon.png"), size="large")
 
     # --- Header
     st.markdown(f"""
 <div class="gs-header">
-  {logo_svg()}
+  {image_tag("grey_swan_emblem.png", "The Grey Swan emblem: a crowned swan beneath a gilded arch")}
   <div>
-    <div class="gs-eyebrow">{brand_name()}</div>
+    <div class="gs-eyebrow">{eyebrow()}</div>
     <div class="gs-title">Manuscript <em>Pre-Submission</em> Checker</div>
   </div>
 </div>
+<div class="gs-ornament">{STAR}</div>
 <p class="gs-lead">Upload a manuscript in Word format (.docx) to run the technical checks a journal
 screening desk performs before peer review: structure, abbreviations, figure and table citations,
 ethics and consent statements, declarations and references.</p>
@@ -151,8 +175,10 @@ ethics and consent statements, declarations and references.</p>
     # --- Sidebar: brand and settings
     defaults = load_settings()
     with st.sidebar:
-        st.markdown(f'<div class="gs-brand">{brand_name()}</div><div class="gs-tag">{TAGLINE}</div>',
-                    unsafe_allow_html=True)
+        logo = image_tag("the_grey_swan_logo.png", "The Grey Swan", "gs-side-logo")
+        if SITE_URL:
+            logo = f'<a href="{SITE_URL}" target="_blank">{logo}</a>'
+        st.markdown(f'{logo}<div class="gs-tag">Editorial · {TAGLINE}</div>', unsafe_allow_html=True)
         st.markdown('<hr class="gs-rule">', unsafe_allow_html=True)
         st.subheader("Settings")
         limit = st.number_input("Abstract word limit", min_value=50, max_value=1000,
