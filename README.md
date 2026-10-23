@@ -4,7 +4,7 @@ A Python tool that runs the technical checks a journal's screening desk performs
 
 Built from experience screening 900+ manuscripts as a journal screening editor. The tool **flags issues for a human to review**; it does not make editorial decisions.
 
-**Try it online:** _add your Streamlit link here after deploying_
+**Try it online:** (https://greyswan-editorial.streamlit.app)
 
 ## What it checks
 
