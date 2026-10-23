@@ -1,6 +1,7 @@
 # Never upload these to GitHub
 google_key.json
 *.json
+!settings.json
 
 # Reports and test output
 screening_report.xlsx
