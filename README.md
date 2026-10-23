@@ -131,7 +131,7 @@ Each step file can also be run on its own, e.g. `python step3_abbreviations.py m
 
 ## How this was built
 
-Built while learning Python, with AI assistance (Claude) for code generation and debugging. Design, screening rules and testing are my own.
+Built while learning Python, with AI assistance (Claude) for code debugging. Design, screening rules and testing are my own.
 
 ## Data and ethics
 
