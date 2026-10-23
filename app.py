@@ -9,7 +9,6 @@ Hosted version: deploy this repository on Streamlit Community Cloud (see README)
 Colours live in .streamlit/config.toml; the logo lives in assets/.
 """
 
-import base64
 import io
 from pathlib import Path
 
@@ -20,7 +19,9 @@ from checker import check_manuscript, build_workbook
 from settings import load_settings
 
 GITHUB_URL = "https://github.com/TheHarshMaan/manuscript-checker"
-ASSETS = Path(__file__).with_name("assets")
+APP_DIR = Path(__file__).parent
+# Images live in assets/, or next to app.py if they were uploaded without the folder
+ASSETS = APP_DIR / "assets" if (APP_DIR / "assets").is_dir() else APP_DIR
 
 # Branding. Paste your website address between the quotes once The Grey Swan site is live,
 # e.g. "https://thegreyswan.com", and the brand name becomes a link everywhere.
@@ -48,7 +49,7 @@ h1, h2, h3 {{
     font-weight: 600 !important;
     letter-spacing: 0.3px;
 }}
-.block-container {{ padding-top: 2.2rem; max-width: 1180px; }}
+.block-container {{ padding-top: 4.5rem; max-width: 1180px; }}
 [data-testid="stSidebar"] {{ border-right: 1px solid {LINE}; }}
 
 .gs-header {{ display: flex; align-items: center; gap: 28px; margin: 0 0 4px; }}
@@ -89,13 +90,13 @@ STAR = (f'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 C10.8 6.5 1
         f'C13.5 10.8 10.8 13.5 10 20 C9.2 13.5 6.5 10.8 0 10 C6.5 9.2 9.2 6.5 10 0 Z" fill="{GOLD}"/></svg>')
 
 
-def image_tag(filename, alt, css_class=""):
-    """An <img> with the picture embedded, so it works on any host without serving files."""
-    path = ASSETS / filename
-    if not path.exists():
-        return ""
-    data = base64.b64encode(path.read_bytes()).decode()
-    return f'<img src="data:image/png;base64,{data}" alt="{alt}" class="{css_class}">'
+def find_asset(filename):
+    """Path to an image in assets/ or next to app.py, or None if it's in neither."""
+    for folder in (APP_DIR / "assets", APP_DIR):
+        if (folder / filename).exists():
+            return str(folder / filename)
+    st.warning(f"Image not found: {filename}. Upload it to the assets folder or next to app.py.")
+    return None
 
 
 def brand_name():
@@ -143,23 +144,31 @@ def footer():
 
 
 def main():
-    icon = ASSETS / "favicon.png"
+    icon = next((str(f / "favicon.png") for f in (APP_DIR / "assets", APP_DIR) if (f / "favicon.png").exists()), None)
     st.set_page_config(page_title=f"Manuscript Pre-Submission Checker | {BRAND}",
-                       page_icon=str(icon) if icon.exists() else None, layout="wide")
+                       page_icon=icon, layout="wide")
     st.markdown(STYLE, unsafe_allow_html=True)
 
-    if hasattr(st, "logo") and (ASSETS / "grey_swan_icon.png").exists():
-        st.logo(str(ASSETS / "grey_swan_icon.png"), size="large")
+    icon_image = find_asset("grey_swan_icon.png")
+    if hasattr(st, "logo") and icon_image:
+        st.logo(icon_image, size="large")
 
-    # --- Header
+    # --- Header: the emblem (Streamlit's own image display) beside the title
+    try:
+        emblem_col, title_col = st.columns([1, 5], vertical_alignment="center")
+    except TypeError:                      # older Streamlit without vertical_alignment
+        emblem_col, title_col = st.columns([1, 5])
+    with emblem_col:
+        emblem = find_asset("grey_swan_emblem.png")
+        if emblem:
+            st.image(emblem, width=170)
+    with title_col:
+        st.markdown(f"""
+<div class="gs-eyebrow">{eyebrow()}</div>
+<div class="gs-title">Manuscript <em>Pre-Submission</em> Checker</div>
+""", unsafe_allow_html=True)
+
     st.markdown(f"""
-<div class="gs-header">
-  {image_tag("grey_swan_emblem.png", "The Grey Swan emblem: a crowned swan beneath a gilded arch")}
-  <div>
-    <div class="gs-eyebrow">{eyebrow()}</div>
-    <div class="gs-title">Manuscript <em>Pre-Submission</em> Checker</div>
-  </div>
-</div>
 <div class="gs-ornament">{STAR}</div>
 <p class="gs-lead">Upload a manuscript in Word format (.docx) to run the technical checks a journal
 screening desk performs before peer review: structure, abbreviations, figure and table citations,
@@ -175,10 +184,10 @@ ethics and consent statements, declarations and references.</p>
     # --- Sidebar: brand and settings
     defaults = load_settings()
     with st.sidebar:
-        logo = image_tag("the_grey_swan_logo.png", "The Grey Swan", "gs-side-logo")
-        if SITE_URL:
-            logo = f'<a href="{SITE_URL}" target="_blank">{logo}</a>'
-        st.markdown(f'{logo}<div class="gs-tag">Editorial · {TAGLINE}</div>', unsafe_allow_html=True)
+        logo = find_asset("the_grey_swan_logo.png")
+        if logo:
+            st.image(logo, width=250)
+        st.markdown(f'<div class="gs-tag">Editorial · {TAGLINE}</div>', unsafe_allow_html=True)
         st.markdown('<hr class="gs-rule">', unsafe_allow_html=True)
         st.subheader("Settings")
         limit = st.number_input("Abstract word limit", min_value=50, max_value=1000,
