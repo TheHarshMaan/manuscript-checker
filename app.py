@@ -16,6 +16,17 @@ from checker import check_manuscript, build_workbook
 from settings import load_settings
 
 GITHUB_URL = "https://github.com/TheHarshMaan/manuscript-checker"
+
+# Branding. Paste your website address between the quotes once The Grey Swan site is live,
+# e.g. "https://thegreyswan.com", and the brand name becomes a link everywhere.
+BRAND = "The Grey Swan Editorial"
+TAGLINE = "Smart publishing tools for authors and publishers"
+SITE_URL = ""
+
+
+def brand_name():
+    """The brand name, as a link if the website address has been filled in."""
+    return f"[{BRAND}]({SITE_URL})" if SITE_URL else BRAND
 STATUS_LABEL = {"Missing": "🔴 Missing", "Concern": "🟠 Concern"}
 
 
@@ -34,9 +45,11 @@ def author_comments(issues):
 
 
 def main():
-    st.set_page_config(page_title="Manuscript Pre-Submission Checker", page_icon="📄", layout="wide")
+    st.set_page_config(page_title=f"Manuscript Pre-Submission Checker | {BRAND}",
+                       page_icon="🦢", layout="wide")
 
     st.title("Manuscript Pre-Submission Checker")
+    st.markdown(f"by **{brand_name()}** · {TAGLINE}")
     st.write(
         "Upload a manuscript in Word format (.docx) to run the technical checks a journal "
         "screening desk performs before peer review: structure, abbreviations, figure and table "
@@ -52,6 +65,9 @@ def main():
     # --- Settings in the sidebar
     defaults = load_settings()
     with st.sidebar:
+        st.markdown(f"### 🦢 {brand_name()}")
+        st.caption(TAGLINE)
+        st.divider()
         st.header("Settings")
         limit = st.number_input("Abstract word limit", min_value=50, max_value=1000,
                                 value=int(defaults["abstract_word_limit"]), step=10)
@@ -116,7 +132,7 @@ def main():
             st.code(author_comments(issues), language=None)
 
     st.divider()
-    st.caption(f"Rule-based checker built in Python. [View the code]({GITHUB_URL}).")
+    st.caption(f"© {BRAND} · Rule-based checker built in Python · [View the code]({GITHUB_URL})")
 
 
 if __name__ == "__main__":
