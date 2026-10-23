@@ -19,8 +19,8 @@ from step1_split_sections import split_into_sections
 from step2_figures_tables import check_figures_tables
 from step3_abbreviations import check_abbreviations
 from step4_declarations import check_declarations, check_study_details, check_references
+from settings import load_settings
 
-ABSTRACT_WORD_LIMIT = 250      # change to match the journal
 CORE_SECTIONS = ["Abstract", "Keywords", "Introduction", "Methods", "Results", "Discussion", "References"]
 
 # Order the report goes in, section by section
@@ -28,8 +28,11 @@ ORDER = ["Structure", "Abstract", "Abbreviations (Abstract)", "Abbreviations (Ma
          "Figures & tables", "Declarations", "Study details", "References"]
 
 
-def check_manuscript(path):
-    """Run every check. Returns a list of (section, check, status, details, comment)."""
+def check_manuscript(path, settings=None):
+    """Run every check. Returns a list of (section, check, status, details, comment).
+    `settings` comes from settings.json unless the website passes its own."""
+    settings = settings or load_settings()
+    limit = settings["abstract_word_limit"]
     sections, doc = split_into_sections(path)
     issues = []
 
@@ -44,13 +47,13 @@ def check_manuscript(path):
 
     # Abstract word count
     abstract_words = sum(len(t.split()) for name, paras in sections if name == "Abstract" for t in paras)
-    if abstract_words > ABSTRACT_WORD_LIMIT:
+    if abstract_words > limit:
         issues.append(("Abstract", "Abstract length", "Concern",
-                       f"Abstract is {abstract_words} words (limit {ABSTRACT_WORD_LIMIT})",
-                       f"Please reduce the abstract to {ABSTRACT_WORD_LIMIT} words or fewer."))
+                       f"Abstract is {abstract_words} words (limit {limit})",
+                       f"Please reduce the abstract to {limit} words or fewer."))
 
     # Abbreviations
-    for where, check, status, details, comment in check_abbreviations(path):
+    for where, check, status, details, comment in check_abbreviations(path, settings):
         issues.append((f"Abbreviations ({where})", check, status, details, comment))
 
     # Figures and tables
@@ -134,6 +137,38 @@ def write_sheet(ws, filename, issues):
     ws.auto_filter.ref = f"A5:E{max(row - 1, 5)}"
 
 
+def build_workbook(results):
+    """results = list of (file name, issues), where issues is None if the file couldn't be read.
+    Returns an openpyxl Workbook: one sheet per manuscript, plus a Summary sheet for batches."""
+    wb = Workbook()
+    wb.remove(wb.active)
+    used_names = set()
+    summary = []
+    for name, issues in results:
+        if issues is None:
+            summary.append((name, "Could not read", "", ""))
+            continue
+        ws = wb.create_sheet(safe_sheet_name(Path(name).stem, used_names))
+        write_sheet(ws, name, issues)
+        summary.append((name, "Ready" if not issues else "Needs revision",
+                        sum(1 for i in issues if i[2] == "Missing"),
+                        sum(1 for i in issues if i[2] == "Concern")))
+
+    if len(results) > 1:
+        ws = wb.create_sheet("Summary", 0)
+        for col, h in enumerate(["Manuscript", "Result", "Missing", "Concern"], start=1):
+            c = ws.cell(1, col, h)
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = HEADER_FILL
+        for r, rowdata in enumerate(summary, start=2):
+            for col, v in enumerate(rowdata, start=1):
+                ws.cell(r, col, v)
+            ws.cell(r, 2).fill = FILLS["OK"] if rowdata[1] == "Ready" else FILLS["Missing"]
+        ws.column_dimensions["A"].width = 45
+        ws.column_dimensions["B"].width = 16
+    return wb
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     to_sheets = "--sheets" in sys.argv
@@ -150,42 +185,19 @@ def main():
         print(f"No .docx files found in '{target}'.")
         return
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    used_names = set()
-    summary = []
-    results = []          # (file name, issues) for Google Sheets
-
+    settings = load_settings()
+    results = []          # (file name, issues or None)
     for f in files:
         try:
-            issues = check_manuscript(f)
+            issues = check_manuscript(f, settings)
         except Exception as e:
             print(f"  Skipped {f.name}: could not read it ({e})")
-            summary.append((f.name, "Could not read", "", ""))
+            results.append((f.name, None))
             continue
-        ws = wb.create_sheet(safe_sheet_name(f.stem, used_names))
-        write_sheet(ws, f.name, issues)
-        verdict = "Ready" if not issues else "Needs revision"
-        missing = sum(1 for i in issues if i[2] == "Missing")
-        concern = sum(1 for i in issues if i[2] == "Concern")
-        summary.append((f.name, verdict, missing, concern))
         results.append((f.name, issues))
-        print(f"  {f.name}: {verdict} ({len(issues)} issues)")
+        print(f"  {f.name}: {'Ready' if not issues else 'Needs revision'} ({len(issues)} issues)")
 
-    # A summary sheet first, when checking more than one manuscript
-    if len(files) > 1:
-        ws = wb.create_sheet("Summary", 0)
-        for col, h in enumerate(["Manuscript", "Result", "Missing", "Concern"], start=1):
-            c = ws.cell(1, col, h)
-            c.font = Font(bold=True, color="FFFFFF")
-            c.fill = HEADER_FILL
-        for r, rowdata in enumerate(summary, start=2):
-            for col, v in enumerate(rowdata, start=1):
-                ws.cell(r, col, v)
-            ws.cell(r, 2).fill = FILLS["OK"] if rowdata[1] == "Ready" else FILLS["Missing"]
-        ws.column_dimensions["A"].width = 45
-        ws.column_dimensions["B"].width = 16
-
+    wb = build_workbook(results)
     if not wb.sheetnames:
         print("Nothing to save.")
         return
@@ -198,10 +210,11 @@ def main():
         return
     print(f"\nReport saved: {out.resolve()}")
 
-    if to_sheets and results:
+    readable = [(name, issues) for name, issues in results if issues is not None]
+    if to_sheets and readable:
         from send_to_sheets import upload
         print()
-        upload(results)
+        upload(readable)
 
 
 if __name__ == "__main__":

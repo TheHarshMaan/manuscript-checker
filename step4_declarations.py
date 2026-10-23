@@ -25,6 +25,35 @@ def sentences_with(pattern, text):
     return " ".join(s for s in sentences if has(pattern, s))
 
 
+NEGATION = r"\b(no|not|neither|nor|without|none)\b"
+
+
+def affirmative(text):
+    """Drop sentences that deny something, e.g. 'No human participants or animals were involved.'"""
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    return " ".join(s for s in sentences if not has(NEGATION, s))
+
+
+def study_text(sections):
+    """What the study itself did: Methods (and Ethics) if present, otherwise the whole body,
+    with negated sentences removed. The Introduction is left out on purpose, since
+    'cancer in women' there doesn't mean the study had human participants."""
+    methods = " ".join(t for name, paras in sections if name in ("Methods", "Ethics") for t in paras)
+    if not methods:
+        methods = " ".join(t for name, paras in sections
+                           if name not in ("References", "Introduction", "Front matter") for t in paras)
+    return affirmative(methods)
+
+
+def study_type(sections):
+    text = study_text(sections)
+    human = (has(HUMAN_WORDS, text)
+             or has(r"\bhospital\b|\bclinical\b|retrospective|medical records|\bconsent\b", text)
+             or has(r"\bisolates\b|\bspecimens\b|\burine\b|\bsputum\b|\bswabs?\b", text))
+    animal = has(ANIMAL_WORDS, text)
+    return human, animal, text
+
+
 # ---------------------------------------------------------------------------
 # Declarations
 # ---------------------------------------------------------------------------
@@ -64,7 +93,7 @@ def check_declarations(sections):
     issues = []   # (section, check, status, details, comment for author)
     headings = {name for name, _ in sections}
     body = " ".join(t for name, paras in sections if name not in ("References",) for t in paras)
-    methods = " ".join(t for name, paras in sections if name in ("Methods", "Ethics") for t in paras)
+    human, animal, study = study_type(sections)
 
     # --- Simple present/absent declarations
     for name, heading, words, comment in DECLARATIONS:
@@ -73,10 +102,20 @@ def check_declarations(sections):
 
     # --- Ethics
     ethics_text = sentences_with(r"ethic|review board|\bIRB\b|\bIEC\b|\bIAEC\b", body)
-    if not ethics_text:
+    review = has(r"systematic review|meta-analys|scoping review|narrative review", body)
+    if not ethics_text and review and not (human or animal):
+        pass   # reviews of published studies usually don't need an ethics statement
+    elif not ethics_text and not (human or animal):
+        issues.append(("Declarations", "Ethics statement", "Concern",
+                       "No ethics statement found (study does not appear to involve humans or animals)",
+                       "Please include an ethics statement, e.g. stating that ethical approval was not "
+                       "required because the study did not involve human participants or animals."))
+    elif not ethics_text:
         issues.append(("Declarations", "Ethics approval", "Missing", "No ethics statement found",
                        "Please include an ethics approval statement with the committee name, "
                        "approval number and date of approval, or explain why approval was not required."))
+    elif has(r"not required|waived|exempt|not applicable", ethics_text) and not (human or animal):
+        pass   # e.g. an in vitro study using commercial cell lines: no approval needed
     elif has(r"not required|waived|exempt", ethics_text) and not has(COMMITTEE, ethics_text):
         issues.append(("Declarations", "Ethics approval", "Concern",
                        "Ethics approval stated as not required/exempt, without naming a committee",
@@ -96,7 +135,6 @@ def check_declarations(sections):
                            "Please provide the date of ethics approval."))
 
     # --- Consent (only expected for human studies)
-    human = has(HUMAN_WORDS, body) or has(r"\bhospital\b|\bclinical\b|retrospective", body)
     consent_text = sentences_with(r"consent", body)
     if human and not consent_text:
         issues.append(("Declarations", "Consent", "Missing", "No consent statement found",
@@ -126,7 +164,7 @@ def check_declarations(sections):
                            "and whether the ethics committee approved this."))
 
     # --- Minors
-    if has(MINOR_WORDS, body) and consent_text and not has(r"parent|guardian|legally authori[sz]ed", consent_text):
+    if has(MINOR_WORDS, study) and consent_text and not has(r"parent|guardian|legally authori[sz]ed", consent_text):
         issues.append(("Declarations", "Consent for minors", "Concern",
                        "Study appears to involve minors; consent does not mention parents/guardians",
                        "Please confirm that consent was obtained from parents/legal guardians "
@@ -141,16 +179,21 @@ def check_study_details(sections):
     where = methods or body
 
     review = has(r"systematic review|meta-analys|scoping review|narrative review", body)
+    human, animal, study = study_type(sections)
 
-    # --- Sample size ("312 patients", "80 school children", "n = 45")
-    if not re.search(r"\bn\s*=\s*\d+|\b\d[\d,]*\s+([a-z\-]+\s+)?(" + SAMPLE_WORDS + r")\b", body, re.IGNORECASE):
+    # --- Sample size ("312 patients", "80 school children", "n = 45", "three independent experiments")
+    number = r"(\d[\d,]*|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty|thirty|fifty|hundred)"
+    units = SAMPLE_WORDS + r"|experiments|replicates|repeats|biological replicates"
+    if review:
+        pass   # reviews report included studies, checked by peer review
+    elif not re.search(r"\bn\s*=\s*\d+|\b" + number + r"\s+([a-z\-]+\s+)?(" + units + r")\b", body, re.IGNORECASE):
         issues.append(("Study details", "Sample size", "Missing", "No sample size found",
                        "Please state the sample size."))
 
     # --- Study period and data age
     period = sentences_with(r"\b(19|20)\d{2}\b", where)
     period = sentences_with(r"between|from|during|collected|enrolled|recruited|conducted|period|"
-                            r"retrospective|prospective|until|to\s+\w+\s+\d{4}", period)
+                            r"retrospective|prospective|until|to\s+\w+\s+\d{4}|\bin\s+(19|20)\d{2}", period)
     years = [int(y) for y in re.findall(r"\b((?:19|20)\d{2})\b", period)]
     if review:
         pass   # in reviews, years are publication dates, not data collection
@@ -165,7 +208,7 @@ def check_study_details(sections):
                        "and confirm that the data remain relevant."))
 
     # --- Inclusion / exclusion criteria (human studies)
-    if has(HUMAN_WORDS, body):
+    if human:
         if not has(r"inclusion", where) or not has(r"exclusion|excluded", where):
             issues.append(("Study details", "Inclusion/exclusion criteria", "Missing",
                            "Inclusion and/or exclusion criteria not found in the Methods",
@@ -180,7 +223,7 @@ def check_study_details(sections):
                        "if not already uploaded."))
 
     # --- Animal studies
-    if has(ANIMAL_WORDS, methods) and not has(r"euthan|sacrific|humane end", body):
+    if animal and not has(r"euthan|sacrific|humane end", body):
         issues.append(("Study details", "Euthanasia", "Concern",
                        "Animal study without a euthanasia/humane endpoint statement",
                        "Please describe the method of euthanasia and confirm it followed approved guidelines."))
