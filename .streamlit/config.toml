@@ -1,5 +1,12 @@
-  [server]
-  maxUploadSize = 20
+[server]
+# Largest file people can upload, in MB
+maxUploadSize = 20
 
-  [theme]
-  primaryColor = "#1f4e79"
+[theme]
+# The Grey Swan Editorial: near-black, warm ivory text, antique gold accent (from the logo)
+base = "dark"
+primaryColor = "#C69F70"
+backgroundColor = "#111315"
+secondaryBackgroundColor = "#1A1D20"
+textColor = "#ECE8E1"
+font = "serif"
