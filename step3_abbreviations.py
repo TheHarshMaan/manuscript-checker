@@ -7,7 +7,7 @@ The abstract and the main text are checked separately, because most
 journals want abbreviations defined at first use in BOTH.
 
 Results are grouped: one row per type of problem, listing every
-abbreviation affected, the way a screener would write the comment.
+abbreviation affected.
 
 How to run (in a terminal, from this folder):
     python step3_abbreviations.py my_manuscript.docx
@@ -32,7 +32,18 @@ COMMON = {
     "HIV", "AIDS", "COVID-19", "SARS-CoV-2",
     # statistics and software
     "SD", "SE", "SEM", "CI", "OR", "HR", "RR", "IQR", "ANOVA", "SPSS", "BMI",
+    # reporting guidelines: used as names, not defined
+    "CONSORT", "PRISMA", "STROBE", "STARD", "CARE", "ARRIVE", "SPIRIT", "MOOSE", "COREQ", "SRQR",
+    "TRIPOD", "CHEERS", "SQUIRE", "AGREE", "EQUATOR", "GRADE", "AMSTAR",
+    # databases and registries
+    "MEDLINE", "CINAHL", "CENTRAL", "LILACS", "PROSPERO", "CTRI", "ISRCTN", "ICTRP", "WHO-ICTRP",
+    # ethics and regulatory bodies commonly named without definition
+    "ICMJE", "COPE", "ICMR", "CPCSEA", "CDSCO", "DCGI", "ICH", "GCP", "FDA", "EMA", "NIH",
 }
+
+# Words in author-contribution statements (CRediT roles), whose initials aren't abbreviations
+CONTRIBUTION_WORDS = re.compile(r"conceptuali[sz]ation|investigation|formal analysis|writing|supervision|"
+                                r"methodology|data curation|visuali[sz]ation|contributed|drafted", re.IGNORECASE)
 
 # An abbreviation = a word with at least 2 capital letters, e.g. AMR, UTI, ESBLs, IL-6, mRNA, TNF-α
 WORD_CHARS = r"[A-Za-z0-9\-α-ωΑ-Ω]"
@@ -93,14 +104,19 @@ def scan(paragraphs, ignore, skip_symbols):
     for text in paragraphs:
         if mostly_capitals(text) or REFERENCE_LINE.search(text):
             continue
+        if CONTRIBUTION_WORDS.search(text) and re.search(r"\b[A-Z]{2,3}\s*[:,(]", text):
+            continue   # e.g. "AB: conceptualisation; CD: writing" in a contributions statement
         def_spans = [m.span(1) for m in DEFINITION.finditer(text)]
 
         for m in ABBR.finditer(text):
             word = m.group(0).rstrip("-")
             if word in ignore or ROMAN.match(word):
                 continue
-            # skip codes like "IEC/2024/117" or "CTRI/2023/05": part of an ID, not an abbreviation
+            # codes like "IEC/2024/117" or "CTRI/2023/05": part of an ID. They count as a use of an
+            # abbreviation the authors defined, but never as an undefined abbreviation.
             if text[m.end():m.end() + 1] == "/" or re.match(r"-\d{3,}", text[m.end():]):
+                if base(word) in defined_anywhere:
+                    uses[base(word)] = uses.get(base(word), 0) + 1
                 continue
             is_definition = m.span() in def_spans
             if skip_symbols and looks_like_symbol(word) and base(word) not in defined_anywhere:
@@ -129,7 +145,7 @@ def check_abbreviations(path, settings=None):
                       if name not in SKIP and name != "Abstract" for t in paras],
     }
 
-    issues = []   # (where, check, status, details, comment for author)
+    issues = []   # (where, check, status, details)
 
     for where, paragraphs in parts.items():
         if not paragraphs:
@@ -144,24 +160,16 @@ def check_abbreviations(path, settings=None):
 
         if not_defined:
             issues.append((where, "Not defined", "Missing",
-                           "Used but never defined: " + ", ".join(not_defined),
-                           f"Please define the following abbreviations at first use in the {place}: "
-                           + ", ".join(not_defined) + "."))
+                           "Used but never defined: " + ", ".join(not_defined)))
         if used_early:
             issues.append((where, "Used before definition", "Concern",
-                           "Appear before their definition: " + ", ".join(used_early),
-                           f"Please define the following abbreviations at their first use in the {place}: "
-                           + ", ".join(used_early) + "."))
+                           "Appear before their definition: " + ", ".join(used_early)))
         if twice:
             issues.append((where, "Defined more than once", "Concern",
-                           "Defined more than once: " + ", ".join(twice),
-                           f"Please define each of the following only once in the {place} and use the "
-                           "abbreviation thereafter: " + ", ".join(twice) + "."))
+                           "Defined more than once: " + ", ".join(twice)))
         if unused:
             issues.append((where, "Defined but not used", "Concern",
-                           "Defined but never used again: " + ", ".join(unused),
-                           f"Please consider spelling out the following terms, as their abbreviations are "
-                           f"not used again in the {place}: " + ", ".join(unused) + "."))
+                           "Defined but never used again: " + ", ".join(unused)))
     return issues
 
 
@@ -183,9 +191,8 @@ def main():
         return
 
     print(f"{len(issues)} issue(s):\n")
-    for where, check, status, details, comment in issues:
+    for where, check, status, details in issues:
         print(f"[{status}] {where} - {check}: {details}")
-        print(f"    -> {comment}\n")
 
 
 if __name__ == "__main__":

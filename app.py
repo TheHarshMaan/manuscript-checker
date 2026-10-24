@@ -113,14 +113,9 @@ def run_checks(name, data, settings):
         return None
 
 
-def author_comments(issues):
-    """All author-facing comments as a numbered list, ready to paste into an email."""
-    return "\n".join(f"{n}. {i[4]}" for n, i in enumerate(issues, start=1))
-
-
 def issues_table(issues):
     """The issues as a table, with the Status column coloured."""
-    df = pd.DataFrame(issues, columns=["Section", "Check", "Status", "Details", "Comment for author"])
+    df = pd.DataFrame(issues, columns=["Section", "Check", "Status", "Details"])
     colour = lambda v: f"color: {STATUS_COLOUR.get(v, INK)}; font-weight: 600"
     styler = df.style
     if hasattr(styler, "map"):
@@ -246,8 +241,6 @@ ethics and consent statements, declarations and references.</p>
                 st.success("All checks passed.")
                 continue
             st.dataframe(issues_table(issues), use_container_width=True, hide_index=True)
-            st.markdown("**Comments for the author** (copy and paste):")
-            st.code(author_comments(issues), language=None)
 
     footer()
 

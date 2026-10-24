@@ -18,10 +18,17 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from step1_split_sections import split_into_sections
 from step2_figures_tables import check_figures_tables
 from step3_abbreviations import check_abbreviations
-from step4_declarations import check_declarations, check_study_details, check_references
+from step4_declarations import check_declarations, check_study_details, check_references, article_type
 from settings import load_settings
 
 CORE_SECTIONS = ["Abstract", "Keywords", "Introduction", "Methods", "Results", "Discussion", "References"]
+# Sections each type of article is expected to have
+REQUIRED_SECTIONS = {
+    "research":         CORE_SECTIONS,
+    "case report":      ["Abstract", "Keywords", "Introduction", "Case presentation", "Discussion", "References"],
+    "narrative review": ["Abstract", "Keywords", "Introduction", "References"],
+    "letter":           ["References"],
+}
 
 # Order the report goes in, section by section
 ORDER = ["Structure", "Abstract", "Abbreviations (Abstract)", "Abbreviations (Main text)",
@@ -29,37 +36,36 @@ ORDER = ["Structure", "Abstract", "Abbreviations (Abstract)", "Abbreviations (Ma
 
 
 def check_manuscript(path, settings=None):
-    """Run every check. Returns a list of (section, check, status, details, comment).
+    """Run every check. Returns a list of (section, check, status, details).
     `settings` comes from settings.json unless the website passes its own."""
     settings = settings or load_settings()
     limit = settings["abstract_word_limit"]
     sections, doc = split_into_sections(path)
     issues = []
 
-    # Structure: missing core sections
+    # Structure: missing core sections (a combined "Results and discussion" counts as both)
     found = {name for name, _ in sections}
-    for s in CORE_SECTIONS:
+    if "Results and discussion" in found:
+        found |= {"Results", "Discussion"}
+    for s in REQUIRED_SECTIONS[article_type(sections)]:
         if s not in found:
             where = "Abstract" if s in ("Abstract", "Keywords") else "Structure"
-            issues.append((where, f"{s} section", "Missing", f"No '{s}' heading found",
-                           f"Please include a {s} section." if s != "Keywords"
-                           else "Please include keywords below the abstract."))
+            issues.append((where, f"{s} section", "Missing", f"No '{s}' heading found"))
 
     # Abstract word count
     abstract_words = sum(len(t.split()) for name, paras in sections if name == "Abstract" for t in paras)
     if abstract_words > limit:
         issues.append(("Abstract", "Abstract length", "Concern",
-                       f"Abstract is {abstract_words} words (limit {limit})",
-                       f"Please reduce the abstract to {limit} words or fewer."))
+                       f"Abstract is {abstract_words} words (limit {limit})"))
 
     # Abbreviations
-    for where, check, status, details, comment in check_abbreviations(path, settings):
-        issues.append((f"Abbreviations ({where})", check, status, details, comment))
+    for where, check, status, details in check_abbreviations(path, settings):
+        issues.append((f"Abbreviations ({where})", check, status, details))
 
     # Figures and tables
     _, _, fig_issues = check_figures_tables(path)
-    for check, status, details, comment in fig_issues:
-        issues.append(("Figures & tables", check, status, details, comment))
+    for check, status, details in fig_issues:
+        issues.append(("Figures & tables", check, status, details))
 
     # Declarations, study details, references
     issues += check_declarations(sections)
@@ -111,7 +117,7 @@ def write_sheet(ws, filename, issues):
     ws["B2"].font = Font(bold=True)
 
     # Table header
-    headers = ["Section", "Check", "Status", "Details", "Comment for author"]
+    headers = ["Section", "Check", "Status", "Details"]
     for col, h in enumerate(headers, start=1):
         c = ws.cell(5, col, h)
         c.font = Font(bold=True, color="FFFFFF")
@@ -123,18 +129,18 @@ def write_sheet(ws, filename, issues):
     row = 6
     if not issues:
         ws.cell(row, 1, "All checks passed").font = Font(italic=True)
-    for section, check, status, details, comment in issues:
-        for col, value in enumerate([section, check, status, details, comment], start=1):
+    for section, check, status, details in issues:
+        for col, value in enumerate([section, check, status, details], start=1):
             c = ws.cell(row, col, value)
             c.border = BORDER
             c.alignment = WRAP
         ws.cell(row, 3).fill = FILLS.get(status, FILLS["Concern"])
         row += 1
 
-    for col, width in zip("ABCDE", [24, 26, 11, 48, 70]):
+    for col, width in zip("ABCD", [26, 28, 11, 90]):
         ws.column_dimensions[col].width = width
     ws.freeze_panes = "A6"
-    ws.auto_filter.ref = f"A5:E{max(row - 1, 5)}"
+    ws.auto_filter.ref = f"A5:D{max(row - 1, 5)}"
 
 
 def build_workbook(results):

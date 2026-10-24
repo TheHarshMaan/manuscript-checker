@@ -16,21 +16,31 @@ SECTION_NAMES = {
     "Abstract":              ["abstract", "summary"],
     "Keywords":              ["keywords", "key words"],
     "Introduction":          ["introduction", "background"],
-    "Methods":               ["methods", "materials and methods", "methodology",
-                              "patients and methods", "methods and materials"],
+    "Methods":               ["methods", "materials and methods", "material and methods", "methodology",
+                              "patients and methods", "methods and materials", "subjects and methods",
+                              "materials & methods", "study design and methods", "methods and analysis"],
     "Results":               ["results", "findings"],
-       "Discussion":          ["discussion", "results and discussion", "comment"],
-    "Conclusion":            ["conclusion", "conclusions"],
-    "Acknowledgements":      ["acknowledgements", "acknowledgments", "acknowledgement"],
-    "Funding":               ["funding", "funding statement", "financial support"],
-    "Conflict of interest":  ["conflict of interest", "conflicts of interest",
-                              "competing interests", "declaration of interest"],
-    "Author contributions":  ["author contributions", "authors' contributions",
-                              "contributorship"],
-    "Ethics":                ["ethics", "ethical approval", "ethics statement",
-                              "ethics approval and consent to participate"],
-    "Data availability":     ["data availability", "data availability statement"],
-    "References":            ["references", "bibliography", "literature cited"],
+    "Results and discussion": ["results and discussion", "results & discussion"],
+    "Case presentation":     ["case presentation", "case report", "case description", "case history",
+                              "case details", "case summary"],
+    "Discussion":            ["discussion", "comment"],
+    "Conclusion":            ["conclusion", "conclusions", "concluding remarks"],
+    "Acknowledgements":      ["acknowledgements", "acknowledgments", "acknowledgement", "acknowledgment"],
+    "Funding":               ["funding", "funding statement", "financial support", "funding sources",
+                              "funding information", "source of funding", "sources of funding"],
+    "Conflict of interest":  ["conflict of interest", "conflicts of interest", "competing interests",
+                              "competing interest", "declaration of interest", "declaration of interests",
+                              "declaration of competing interest", "declaration of competing interests",
+                              "disclosure", "disclosures"],
+    "Author contributions":  ["author contributions", "authors' contributions", "author contribution",
+                              "contributorship", "credit authorship contribution statement",
+                              "credit author statement", "authorship contributions"],
+    "Ethics":                ["ethics", "ethical approval", "ethics statement", "ethical considerations",
+                              "ethics approval and consent to participate", "ethics approval", "ethical statement"],
+    "Consent":               ["consent", "consent for publication", "patient consent", "informed consent"],
+    "Data availability":     ["data availability", "data availability statement", "availability of data and materials",
+                              "data sharing statement"],
+    "References":            ["references", "bibliography", "literature cited", "reference list"],
 }
 
 
@@ -61,6 +71,24 @@ def match_section(paragraph):
     return None
 
 
+UNITS = re.compile(r"(?:\b(?:m|cm|mm|km|kg|µm|μm|nm|ft|in|s)|\d)$")
+
+
+def paragraph_text(p):
+    """The paragraph's text, with superscript citation numbers written as [1,2],
+    so 'diabetes triples the risk.¹,²' reads like 'diabetes triples the risk.[1,2]'.
+    Superscripts after a number or a unit (10⁵, m², cm³) are left alone."""
+    out = ""
+    for run in p.runs:
+        text = run.text
+        if run.font.superscript and re.fullmatch(r"\s*\d+(?:\s*[,–-]\s*\d+)*\s*", text or "") \
+                and out and not UNITS.search(out.rstrip()):
+            out += "[" + re.sub(r"\s+", "", text) + "]"
+        else:
+            out += text
+    return out if p.runs else p.text
+
+
 def split_into_sections(path):
     """Read the .docx and return a list of (section_name, [paragraph texts])."""
     doc = Document(path)
@@ -68,14 +96,15 @@ def split_into_sections(path):
 
     for p in doc.paragraphs:
         name = match_section(p)
+        text = paragraph_text(p).strip()
         if name:
             sections.append((name, []))
             # keep inline text, e.g. "Keywords: x, y" -> "x, y"
             rest = re.split(r"[:\-]", p.text, maxsplit=1)
             if name == "Keywords" and len(rest) == 2 and rest[1].strip():
                 sections[-1][1].append(rest[1].strip())
-        elif p.text.strip():
-            sections[-1][1].append(p.text.strip())
+        elif text:
+            sections[-1][1].append(text)
 
     return sections, doc
 

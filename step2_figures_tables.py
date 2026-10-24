@@ -62,7 +62,7 @@ def check_figures_tables(path):
                     if n not in cited[kind]:
                         cited[kind].append(n)
 
-    issues = []   # each issue: (check, status, details, comment for author)
+    issues = []   # each issue: (check, status, details)
 
     for kind in ["Figure", "Table"]:
         order = cited[kind]
@@ -74,35 +74,29 @@ def check_figures_tables(path):
         expected = set(range(1, max(all_nums) + 1))
         for n in sorted(expected - all_nums):
             issues.append((f"{kind} numbering", "Missing",
-                           f"{kind} {n} is never mentioned, but higher numbers are",
-                           f"Please check the numbering of {kind.lower()}s; "
-                           f"{kind} {n} is not cited in the text."))
+                           f"{kind} {n} is never mentioned, but higher numbers are"))
 
         # 2. Order of first citation
         if order != sorted(order):
             issues.append((f"{kind} order", "Concern",
-                           f"First cited in this order: {', '.join(map(str, order))}",
-                           f"Please cite {kind.lower()}s in numerical order in the text."))
+                           f"First cited in this order: {', '.join(map(str, order))}"))
 
         # 3. Caption present but never cited
         for n in sorted(captions[kind] - set(order)):
             issues.append((f"{kind} citation", "Missing",
-                           f"{kind} {n} has a caption but is not cited in the text",
-                           f"Please cite {kind} {n} in the text."))
+                           f"{kind} {n} has a caption but is not cited in the text"))
 
         # 4. Cited but no caption (only checked if the manuscript has captions at all)
         if captions[kind]:
             for n in sorted(set(order) - captions[kind]):
                 issues.append((f"{kind} caption", "Concern",
-                               f"{kind} {n} is cited but no caption was found",
-                               f"Please provide a caption/legend for {kind} {n}."))
+                               f"{kind} {n} is cited but no caption was found"))
 
     # 5. Real Word tables vs tables cited
     if len(doc.tables) > len(cited["Table"]):
         issues.append(("Table citation", "Concern",
                        f"{len(doc.tables)} table(s) in the file, "
-                       f"{len(cited['Table'])} cited in the text",
-                       "Please ensure every table is cited in the text."))
+                       f"{len(cited['Table'])} cited in the text"))
 
     return cited, captions, issues
 
@@ -130,9 +124,8 @@ def main():
         return
 
     print(f"{len(issues)} issue(s):\n")
-    for check, status, details, comment in issues:
+    for check, status, details in issues:
         print(f"[{status}] {check}: {details}")
-        print(f"    -> {comment}\n")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ KEY_FILE = Path(__file__).with_name("google_key.json")
 
 SUMMARY_HEADERS = ["Date checked", "Manuscript", "Result", "Missing", "Concern"]
 ISSUE_HEADERS = ["Date checked", "Manuscript", "Section", "Check", "Status",
-                 "Details", "Comment for author"]
+                 "Details"]
 
 COLOURS = {
     "Missing":        {"red": 0.97, "green": 0.80, "blue": 0.68},
@@ -98,8 +98,8 @@ def upload(results):
         missing = sum(1 for i in issues if i[2] == "Missing")
         concern = sum(1 for i in issues if i[2] == "Concern")
         summary_rows.append([now, name, "Ready" if not issues else "Needs revision", missing, concern])
-        for section, check, status, details, comment in issues:
-            issue_rows.append([now, name, section, check, status, details, comment])
+        for section, check, status, details in issues:
+            issue_rows.append([now, name, section, check, status, details])
 
     summary_tab.append_rows(summary_rows)
     if issue_rows:
