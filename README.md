@@ -1,10 +1,10 @@
 # Manuscript Pre-Submission Checker
 
-A Python tool that runs the technical checks a journal's screening desk performs before peer review, and produces a report with ready-to-send comments for authors. Use it from the command line or as a website.
+A Python tool that runs the technical checks a journal's screening desk performs before peer review, and produces a clear, colour-coded report of what is missing or needs attention. Use it from the command line or as a website.
 
 Built from experience screening 900+ manuscripts as a journal screening editor. The tool **flags issues for a human to review**; it does not make editorial decisions.
 
-**Try it online:** (https://greyswan-editorial.streamlit.app)
+**Try it online:** [greyswan-editorial.streamlit.app](https://greyswan-editorial.streamlit.app), by The Grey Swan Editorial
 
 ## What it checks
 
@@ -19,12 +19,14 @@ Built from experience screening 900+ manuscripts as a journal screening editor. 
 
 The checker works out what kind of study it is reading. A cell-line study isn't asked for patient consent, a systematic review isn't asked for ethics approval, and sentences like "no animals were involved" aren't mistaken for an animal study.
 
-Every issue comes with a status (**Missing** / **Concern**) and an author-facing comment starting with "Please…".
+Every issue comes with a status (**Missing** / **Concern**) and a plain description of what was found.
+
+The checker also recognises the type of article and applies the right rules: research papers are expected to follow IMRaD; case reports, narrative reviews and letters to the editor are not asked for Methods, Results or a sample size. Superscript citations (¹ ²) are read as well as bracketed ones ([1]).
 
 ## Output
 
 - **Excel report** (`screening_report.xlsx`): one colour-coded sheet per manuscript, plus a summary sheet for batch runs.
-- **Website**: upload files, see results on screen, copy the author comments, download the Excel report.
+- **Website**: upload files, see results on screen, download the Excel report.
 - **Google Sheets** (optional, command line): appends results to a shared sheet as a running screening log, using the Google Sheets API.
 
 ## Setup
@@ -101,11 +103,31 @@ Uploaded files are checked in memory and never written to disk or stored.
 | `step4_declarations.py` | Declarations, study details and reference checks |
 | `settings.py`, `settings.json` | Journal-specific settings |
 | `send_to_sheets.py` | Google Sheets upload |
-| `tests/` | A realistic test manuscript used to measure false alarms |
+| `tests/` | Labelled test papers and a script that scores the checker (see Testing) |
 
 Each step file can also be run on its own, e.g. `python step3_abbreviations.py manuscript.docx`.
 
+## Testing
+
+`tests/` holds 12 invented manuscripts, each with a known list of planted problems: a clean control trial, a flawed trial, a systematic review, an animal study, a school survey, a case report, a paper with unusual headings, a retrospective study, a qualitative study, a narrative review, a letter to the editor, and a paper with superscript citations.
+
+```
+python tests/make_test_papers.py    # rebuild the papers
+python tests/run_tests.py           # score the checker
+```
+
+The script reports, for every paper, which planted problems were caught, which were missed, and any false alarms. Current result: **16/16 planted problems caught, 0 false alarms.** Five of the papers were written as an unseen second round, with expected results fixed before the checker was run on them.
+
 ## Changelog
+
+**v1.2**
+- Labelled test set (12 papers) and a scoring script.
+- Article-type detection: case reports, narrative reviews and letters to the editor get their own rules.
+- Superscript citations recognised.
+- More heading styles recognised (e.g. "Material and Methods", "Results and Discussion", "CRediT authorship contribution statement").
+- Reporting guidelines, databases and regulators (CONSORT, PRISMA, MEDLINE, CPCSEA…) no longer flagged as undefined abbreviations.
+- Author-facing "Please…" comments removed: the report now lists findings only.
+- The Grey Swan Editorial design for the website.
 
 **v1.1**
 - Far fewer false alarms on real papers: a realistic test manuscript went from 36 flags to 2, both genuine.
@@ -131,7 +153,7 @@ Each step file can also be run on its own, e.g. `python step3_abbreviations.py m
 
 ## How this was built
 
-Built while learning Python, with AI assistance (Claude) for code debugging. Design, screening rules and testing are my own.
+Built while learning Python, with AI assistance (Claude) for code generation and debugging. Design, screening rules and testing are my own.
 
 ## Data and ethics
 
