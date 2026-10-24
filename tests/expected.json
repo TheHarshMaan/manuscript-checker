@@ -1,0 +1,35 @@
+{
+  "01_control_clean_rct.docx": [],
+  "02_flawed_rct.docx": [
+    "Abbreviations (Main text)|Not defined",
+    "Declarations|Ethics approval date",
+    "Declarations|Verbal consent",
+    "Figures & tables|Figure order",
+    "References|Citation not in list",
+    "References|Reference not cited",
+    "Study details|Trial registration"
+  ],
+  "03_systematic_review.docx": [
+    "Abstract|Abstract length",
+    "Study details|PROSPERO registration"
+  ],
+  "04_animal_study.docx": [
+    "Study details|Data older than 2020",
+    "Study details|Euthanasia"
+  ],
+  "05_survey_minors.docx": [
+    "Declarations|Consent for minors",
+    "Study details|Inclusion/exclusion criteria",
+    "Study details|Questionnaire"
+  ],
+  "06_case_report.docx": [],
+  "07_messy_headings.docx": [],
+  "08_retrospective_waiver.docx": [
+    "Abbreviations (Abstract)|Not defined",
+    "Study details|Data older than 2020"
+  ],
+  "09_qualitative_interviews.docx": [],
+  "10_narrative_review.docx": [],
+  "11_letter_to_editor.docx": [],
+  "12_superscript_citations.docx": []
+}
