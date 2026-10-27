@@ -27,7 +27,7 @@ ASSETS = APP_DIR / "assets" if (APP_DIR / "assets").is_dir() else APP_DIR
 # e.g. "https://thegreyswan.com", and the brand name becomes a link everywhere.
 BRAND = "The Grey Swan Editorial"
 TAGLINE = "Smart publishing tools for authors and publishers"
-SITE_URL = ""
+SITE_URL = "https://thegreyswan.in"
 
 # Brand colours, taken from the logo (also set in .streamlit/config.toml)
 INK = "#ECE8E1"        # warm ivory text
