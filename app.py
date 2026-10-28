@@ -15,10 +15,21 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+# Load the checker's own files fresh on every run. Streamlit Cloud updates app.py in place when
+# GitHub changes, but can keep older copies of these files in memory, mixing old and new code.
+import importlib
+import settings as _settings
+import step1_split_sections as _step1
+import step2_figures_tables as _step2
+import step3_abbreviations as _step3
+import step4_declarations as _step4
+import checker as _checker
+for _module in (_settings, _step1, _step2, _step3, _step4, _checker):
+    importlib.reload(_module)
+
 from checker import check_manuscript, build_workbook
 from settings import load_settings
 
-GITHUB_URL = "https://github.com/TheHarshMaan/manuscript-checker"
 APP_DIR = Path(__file__).parent
 # Images live in assets/, or next to app.py if they were uploaded without the folder
 ASSETS = APP_DIR / "assets" if (APP_DIR / "assets").is_dir() else APP_DIR
@@ -115,7 +126,8 @@ def run_checks(name, data, settings):
 
 def issues_table(issues):
     """The issues as a table, with the Status column coloured."""
-    df = pd.DataFrame(issues, columns=["Section", "Check", "Status", "Details"])
+    # first four fields only, so older check files that still add a fifth field don't break the table
+    df = pd.DataFrame([tuple(i)[:4] for i in issues], columns=["Section", "Check", "Status", "Details"])
     colour = lambda v: f"color: {STATUS_COLOUR.get(v, INK)}; font-weight: 600"
     styler = df.style
     if hasattr(styler, "map"):
@@ -134,7 +146,7 @@ def eyebrow():
 def footer():
     st.markdown(f'<div class="gs-ornament" style="margin:44px auto 8px">{STAR}</div>'
                 f'<div class="gs-foot">© <span class="gs-name">{BRAND}</span> · Rule-based checker built in Python · '
-                f'<a href="{GITHUB_URL}" target="_blank">View the code</a></div>',
+                f'<a href="{SITE_URL}" target="_blank">thegreyswan.in</a></div>',
                 unsafe_allow_html=True)
 
 
@@ -192,8 +204,6 @@ ethics and consent statements, declarations and references.</p>
                              help="Abbreviations this journal doesn't require authors to define, e.g. ICU, MIC")
         skip_symbols = st.checkbox("Skip gene, cell-line and chemical names", value=True,
                                    help="E.g. TP53, MCF-7, NaCl are not flagged unless the authors define them.")
-        st.markdown(f'<div class="gs-tag"><a href="{GITHUB_URL}" target="_blank">Source code on GitHub</a></div>',
-                    unsafe_allow_html=True)
 
     settings = {
         "abstract_word_limit": int(limit),
