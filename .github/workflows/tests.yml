@@ -1,0 +1,41 @@
+# Runs the test suite on GitHub every time files are uploaded or changed.
+# Results appear under the repository's "Actions" tab: a green tick means every test passed.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Rules, profiles and parsing helpers
+        run: python tests/test_parts.py
+      - name: Test papers under every profile
+        run: python tests/run_tests.py
+      - name: Reference checker (saved Crossref answers)
+        run: python tests/test_references.py
+      - name: Website bundle builds
+        run: python build_web.py
+
+  live-crossref:
+    # The reference checker against the real Crossref API. Kept separate (and allowed to fail) because it
+    # depends on Crossref being reachable: a red cross here means "look at the log", not "the code is broken".
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Check against the real Crossref
+        run: python tests/live_crossref.py
