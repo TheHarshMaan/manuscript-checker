@@ -6,6 +6,8 @@ Built from experience screening 900+ manuscripts as a journal screening editor. 
 
 **Try it online:** [thegreyswan.in/checker](https://thegreyswan.in/checker/), by The Grey Swan Editorial. Files are checked inside your browser and never uploaded.
 
+This repository also holds the **[Reference Integrity Checker](#reference-integrity-checker)** ([thegreyswan.in/references](https://thegreyswan.in/references/)): retracted papers, wrong or missing DOIs, and references that can't be found, checked against Crossref and Retraction Watch.
+
 ## What it checks
 
 Journals don't all screen the same way, so every check belongs to a **journal profile** that decides whether it runs and how serious it is (see [Journal profiles](#journal-profiles)). 95 rules in all; `rules.py` lists every one with what it checks, how to fix it and where the requirement comes from.
@@ -66,13 +68,41 @@ The website (`web/`) runs the same Python checker inside the visitor's browser u
 Build it after any change to a check, rule or profile:
 
 ```
-python build_web.py                         # builds web/checker_bundle.zip
-python build_web.py ../my-site/checker      # also copies the finished page into your site's folder
+python build_web.py                 # builds both pages: web/ (checker) and web_references/ (references)
+python build_web.py ../my-site      # also copies them into your site, as checker/ and references/
 ```
 
-`checker_bundle.zip` holds the checker, the profiles and the libraries the browser doesn't already have (python-docx, openpyxl and pypdf, with their licences). To deploy, upload the files in `web/` to the site's `checker/` folder.
+`checker_bundle.zip` holds the checker, the reference checker, the profiles and the libraries the browser doesn't already have (python-docx, openpyxl and pypdf, with their licences). To deploy, upload `web/` as the site's `checker/` folder and `web_references/` as its `references/` folder.
 
 To try it on your own computer: `python -m http.server` from the `web/` folder, then open `http://localhost:8000`.
+
+## Reference integrity checker
+
+`refcheck.py` checks every reference in a manuscript (or a pasted list) against [Crossref](https://www.crossref.org/) and the [Retraction Watch Database](https://retractionwatch.com/):
+
+| Result | Severity | Meaning |
+| --- | --- | --- |
+| Retracted | Must fix | The cited paper has been retracted (Retraction Watch, the publisher's notice in Crossref, or a "RETRACTED:" title) |
+| Expression of concern | Should fix | The journal has published an expression of concern |
+| DOI not found | Should fix | The DOI isn't registered (usually a typo); the right DOI is suggested when the paper can be found |
+| DOI points to a different paper | Should fix | The DOI belongs to another paper (title and author or year don't match) |
+| Couldn't be found | Should fix | No matching record in Crossref: check the reference exists and is right |
+| Corrected / Reinstated | Advisory | A correction, or a retraction that was later reversed |
+| Details differ | Advisory | Title, first author or year differ from Crossref's record (a year off by one is allowed: online vs print) |
+| DOI missing | Advisory | The reference has no DOI but Crossref has one: it's given |
+| Not checked | — | Books, reports, guidelines and websites, which usually aren't in Crossref |
+| Verified | — | Matches Crossref, with no notices |
+
+```
+python refcheck.py manuscript.docx          # any format the checker reads, or a .txt list of references
+python refcheck.py manuscript.docx --word   # also save a Word report (reference_report.docx)
+```
+
+It needs the internet (Crossref). It is a polite API user: it gives a contact address (`CONTACT` in `refcheck.py`) and stays under Crossref's rate limits (about 8 lookups and 2.5 searches a second, 3 at a time on the website).
+
+**Retractions:** a GitHub Action (`.github/workflows/retractions.yml`) downloads the Retraction Watch database every day and publishes a compact list (`retractions.json.gz`, about 1 MB) on this repository's `retraction-data` branch, replaced each day so the history doesn't grow. The website and the command line read it from there; if it isn't available, they ask Crossref for each paper's notices instead. Retraction Watch data © Center for Scientific Integrity, distributed by Crossref.
+
+**On the website** the manuscript is read in the browser and never uploaded; only each reference's DOI or text is sent to Crossref. Results fill in as Crossref answers, and can be downloaded as Excel or Word.
 
 ## Journal profiles
 
@@ -158,19 +188,26 @@ Save it as `profiles/my_journal.yaml` and run with `--profile my_journal`. A mis
 | `step9_integrity.py` | Integrity red flags |
 | `step10_formatting.py` | Formatting and mechanics |
 | `step11_submission.py` | Title pages and cover letters |
-| `web/`, `web_entry.py`, `build_web.py` | The website, its bridge to the checker, and the script that builds it |
+| `refcheck.py` | The reference integrity checker |
+| `build_retractions.py` | Builds the daily retraction list from the Retraction Watch database |
+| `web/`, `web_references/`, `web_entry.py`, `build_web.py` | The two web pages (checker and references), their bridge to the Python, and the script that builds them |
 | `send_to_sheets.py` | Google Sheets upload |
 | `tests/` | Test papers, expected results and the test scripts (see Testing) |
-| `.github/workflows/tests.yml` | Runs the tests on GitHub after every upload |
+| `.github/workflows/tests.yml` | Runs the tests on GitHub after every upload (and a live check against Crossref) |
+| `.github/workflows/retractions.yml` | Rebuilds the retraction list every day |
 
 ## Testing
 
 `tests/papers/` holds 36 invented manuscripts, each with a known list of planted problems, and `tests/converted/` holds 16 PDF, ODT and RTF copies of six of them (made with LibreOffice, plus a PDF compiled from the LaTeX paper with pdflatex). They cover: clean and flawed trials, a systematic review, an animal study, surveys, case reports, a qualitative study, a narrative review, a letter, superscript citations, a properly blinded and a leaky double-blind paper, correct and flawed APA, AMA and IEEE papers, complete and flawed declarations, a diagnostic accuracy study, a humanities essay, a commentary, a trial protocol, a short communication, nine integrity red flags in one paper, formatting done right and wrong, LaTeX source (with and without a .bib file), a cover letter, a title page, and the basic checks.
 
 ```
-python tests/test_parts.py     # rules, profiles and the text-parsing helpers
-python tests/run_tests.py      # every paper under every profile
+python tests/test_parts.py         # rules, profiles and the text-parsing helpers
+python tests/run_tests.py          # every paper under every profile
+python tests/test_references.py    # the reference checker, with saved Crossref answers
+python tests/live_crossref.py      # the reference checker against the real Crossref (needs the internet)
 ```
+
+The reference checker's 14 test cases (`tests/test_references.py`) cover a verified reference, retractions found three ways, a typo'd DOI, a real DOI on the wrong reference, a missing DOI, an invented reference, a book, a report, a wrong year, a correction, an expression of concern, a reinstatement and Crossref being down. They run on saved answers in Crossref's format; `live_crossref.py` repeats the key cases against the real API (including the retracted 1998 Wakefield and 2020 Surgisphere papers), and runs on GitHub after every upload.
 
 `run_tests.py` checks every paper under every profile, plus a test-only profile that switches every formatting requirement on (`tests/profiles/`). Expected results live in `tests/expected*.json`: the base results, the extras under double-blind review, under each citation style and under particular profiles. Each converted copy must give the same results as its Word original, apart from what its format can't show. `test_parts.py` also confirms that every one of the 95 rules is triggered by at least one test paper.
 
@@ -179,6 +216,11 @@ Current result: **every planted problem caught under all nine profiles, with no 
 To rebuild the test files: `make_test_papers.py`, `make_double_blind_papers.py`, `make_citation_papers.py`, `make_v2_papers.py`, then `make_converted.py` (needs LibreOffice), in that order.
 
 ## Changelog
+
+**v2.1**
+- Reference integrity checker (`refcheck.py`, thegreyswan.in/references): retracted papers, expressions of concern and corrections (Retraction Watch and Crossref), DOIs that don't exist or point to a different paper, missing DOIs, references that can't be found; Excel and Word reports.
+- Daily retraction list built by a GitHub Action from the Retraction Watch database.
+- The two web pages link to each other.
 
 **v2.0**
 - Declarations for 2026: generative AI statement, CRediT roles, corresponding author, ORCID iDs and data repositories (for journals that require them), code availability, consent for publication in case reports, trial registered before the study started, Declaration of Helsinki, sex and gender reporting (SAGER), permission for reproduced figures, grant numbers.
@@ -245,7 +287,6 @@ To rebuild the test files: `make_test_papers.py`, `make_double_blind_papers.py`,
 
 ## Roadmap
 
-- Reference validation against Crossref (invalid DOIs, retracted papers) — the planned references integrity tool
 - Author verification via ORCID
 - Publisher-specific profiles, verified against each publisher's current instructions
 

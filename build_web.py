@@ -1,14 +1,15 @@
 """
 Builds the website version of the checker.
 
-Packs the checker's Python files, the journal profiles, and the two libraries the browser
-doesn't already have (python-docx and openpyxl) into  web/checker_bundle.zip.
-The page in web/ loads that file and runs the checker in the visitor's browser.
+Packs the checker's Python files, the journal profiles, and the libraries the browser doesn't already
+have (python-docx, openpyxl and pypdf) into checker_bundle.zip, used by both pages:
+  web/              the manuscript checker       -> thegreyswan.in/checker/
+  web_references/   the reference checker        -> thegreyswan.in/references/
 
-    python build_web.py                          -> builds web/checker_bundle.zip
-    python build_web.py ../my-site/checker       -> also copies the finished page into your site
+    python build_web.py                  -> builds both pages
+    python build_web.py ../my-site       -> also copies them into your site, as checker/ and references/
 
-Run it again whenever you change a check, a rule or a profile, then upload the web/ files to the site.
+Run it again whenever you change a check, a rule or a profile, then upload both folders to the site.
 """
 
 import importlib
@@ -19,19 +20,22 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 WEB = HERE / "web"
+REFERENCES = HERE / "web_references"
 BUNDLE = WEB / "checker_bundle.zip"
+SHARED = ["style.css", "worker.js", "grey_swan_emblem.png", "favicon.png", "checker_bundle.zip"]   # copied into both
 
 CHECKER_FILES = ["rules.py", "settings.py", "checker.py", "web_entry.py", "step1_split_sections.py",
                  "step2_figures_tables.py", "step3_abbreviations.py", "step4_declarations.py",
                  "step5_anonymisation.py", "step6_citations.py",
                  "step7_policies.py", "step8_guidelines.py",
                  "step9_integrity.py", "step10_formatting.py",
-                 "step11_submission.py", "readers.py"]
+                 "step11_submission.py", "readers.py", "refcheck.py"]
 # Pure-Python libraries copied from your own Python installation (pip install -r requirements.txt).
 # lxml and pyyaml are not here: the browser version of Python already provides them.
 LIBRARIES = ["docx", "openpyxl", "et_xmlfile", "pypdf"]
 # Files the page needs, besides the bundle
-PAGE_FILES = ["index.html", "style.css", "app.js", "worker.js", "grey_swan_emblem.png", "favicon.png"]
+PAGE_FILES = {"checker": (WEB, ["index.html", "app.js"] + SHARED),
+              "references": (REFERENCES, ["index.html", "refs.js", "refs.css"] + SHARED)}
 
 
 def add_folder(zf, folder, arcname):
@@ -59,15 +63,18 @@ def build():
     for img in ("grey_swan_emblem.png", "favicon.png"):
         if (HERE / img).exists():
             shutil.copy(HERE / img, WEB / img)
-    print(f"Built {BUNDLE.relative_to(HERE)} ({BUNDLE.stat().st_size / 1e6:.1f} MB)")
+    for name in SHARED:                       # the reference checker uses the same styles, worker and bundle
+        shutil.copy(WEB / name, REFERENCES / name)
+    print(f"Built {BUNDLE.relative_to(HERE)} ({BUNDLE.stat().st_size / 1e6:.1f} MB) for web/ and web_references/")
 
 
-def copy_to(target):
-    target = Path(target)
-    target.mkdir(parents=True, exist_ok=True)
-    for name in PAGE_FILES + [BUNDLE.name]:
-        shutil.copy(WEB / name, target / name)
-    print(f"Copied the page to {target.resolve()}")
+def copy_to(site):
+    for folder, (source, names) in PAGE_FILES.items():
+        target = Path(site) / folder
+        target.mkdir(parents=True, exist_ok=True)
+        for name in names:
+            shutil.copy(source / name, target / name)
+        print(f"Copied the {folder} page to {target.resolve()}")
 
 
 if __name__ == "__main__":

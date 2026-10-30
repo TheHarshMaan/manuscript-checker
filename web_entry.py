@@ -95,3 +95,41 @@ def check(files_json, profile_json, dismissed_json="[]"):
         build_word_report(results, prof.get("name", ""), infos).save(WORD_REPORT)
     return json.dumps({"results": out, "report": str(REPORT) if has_report else None,
                        "word": str(WORD_REPORT) if has_report else None})
+
+
+# ---------------------------------------------------------------------------
+# Reference integrity checker (the page at /references/). The page does the Crossref lookups (the browser
+# fetches); these functions read the references, decide each verdict and build the reports.
+# ---------------------------------------------------------------------------
+import refcheck                                       # noqa: E402
+
+REF_REPORT = Path("/tmp/reference_report.xlsx")
+REF_WORD = Path("/tmp/reference_report.docx")
+
+
+def refs_extract(files_json, text):
+    """References from an uploaded file (written to /tmp/uploads by the page) or from pasted text."""
+    files = json.loads(files_json or "[]")
+    if files:
+        refs = refcheck.extract(UPLOADS / files[0]["path"], files[0]["name"])
+    else:
+        refs = refcheck.extract(text=text or "")
+    for ref in refs:
+        ref["query"] = refcheck.search_query(ref)
+    return json.dumps({"references": refs, "api": refcheck.API, "fields": refcheck.SEARCH_FIELDS,
+                       "contact": refcheck.CONTACT})
+
+
+def refs_assess(ref_json, record_json, record_status, items_json, list_json, updates_json):
+    """The verdict for one reference, from what Crossref answered (see refcheck.assess)."""
+    loads = lambda s: json.loads(s) if s else None
+    status = int(record_status) if record_status not in (None, "", "null") else None
+    return json.dumps(refcheck.assess(loads(ref_json), loads(record_json), status, loads(items_json),
+                                      loads(list_json), loads(updates_json)))
+
+
+def refs_report(results_json, source_name):
+    results = json.loads(results_json)
+    refcheck.build_excel(results, source_name).save(REF_REPORT)
+    refcheck.build_word(results, source_name).save(REF_WORD)
+    return json.dumps({"report": str(REF_REPORT), "word": str(REF_WORD)})
