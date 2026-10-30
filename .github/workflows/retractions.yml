@@ -1,0 +1,35 @@
+# Every day: download the Retraction Watch database from Crossref and publish the compact list of
+# retracted and corrected papers (retractions.json.gz, on the retraction-data branch) that the reference
+# checker uses.
+name: Update retraction list
+
+on:
+  schedule:
+    - cron: "17 2 * * *"        # every day at 02:17 UTC (07:47 in India)
+  workflow_dispatch:            # and whenever you press "Run workflow" in the Actions tab
+
+permissions:
+  contents: write               # lets the job save the updated list in this repository
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download the Retraction Watch database
+        run: git clone --depth 1 https://gitlab.com/crossref/retraction-watch-data /tmp/rw
+      - name: Build the list
+        run: python build_retractions.py /tmp/rw/retraction_watch.csv /tmp/out/retractions.json.gz
+      - name: Publish it on the retraction-data branch (replaced each time, so the history doesn't grow)
+        run: |
+          cd /tmp/out
+          git init -q -b retraction-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf "Compact list of retracted and corrected papers, rebuilt every day from the Retraction Watch\nDatabase (Center for Scientific Integrity), via Crossref. Used by refcheck.py and the website.\n" > README.md
+          git add retractions.json.gz README.md
+          git commit -q -m "Retraction list $(date -u +%Y-%m-%d)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" retraction-data
