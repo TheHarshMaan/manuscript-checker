@@ -25,3 +25,6 @@ rules:
   euthanasia: should
   prospero: must
   table_count: should
+  ai_disclosure: should
+  consent_publication: must
+  reporting_guideline: should

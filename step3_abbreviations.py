@@ -39,6 +39,9 @@ COMMON = {
     "MEDLINE", "CINAHL", "CENTRAL", "LILACS", "PROSPERO", "CTRI", "ISRCTN", "ICTRP", "WHO-ICTRP",
     # ethics and regulatory bodies commonly named without definition
     "ICMJE", "COPE", "ICMR", "CPCSEA", "CDSCO", "DCGI", "ICH", "GCP", "FDA", "EMA", "NIH",
+    # widely known technology terms and product names (written as names, not defined)
+    "AI", "IT", "URL", "PDF", "OpenAI", "ChatGPT", "GPT", "GitHub", "GitLab", "PyTorch", "TensorFlow", "LaTeX",
+    "iThenticate", "PubMed", "ORCID", "CRediT", "DOI", "ISBN", "ISSN", "SciELO",
 }
 
 # Words in author-contribution statements (CRediT roles), whose initials aren't abbreviations
@@ -133,12 +136,13 @@ def scan(paragraphs, ignore, skip_symbols):
     return defined_at, times_defined, first_use, uses
 
 
-def check_abbreviations(path, settings=None):
+def check_abbreviations(path, settings=None, sections=None):
     """`settings` is the "settings" part of a profile."""
     settings = settings or load_settings()["settings"]
     ignore = COMMON | set(settings.get("extra_ignore_abbreviations", []))
     skip_symbols = settings.get("skip_gene_and_chemical_symbols", True)
-    sections, _ = split_into_sections(path)
+    if sections is None:
+        sections, _ = split_into_sections(path)
 
     parts = {
         "Abstract": [t for name, paras in sections if name == "Abstract" for t in paras],

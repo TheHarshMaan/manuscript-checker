@@ -12,14 +12,18 @@ from pathlib import Path
 
 import yaml
 
-from rules import RULES, SEVERITIES
+from rules import RULES, SEVERITIES, REVIEW_MODELS, CITATION_STYLES
 
 HERE = Path(__file__).parent
 PROFILE_DIR = HERE / "profiles"
 DEFAULT_PROFILE = "generic"
 
 # Settings that settings.json (or the website sidebar) may override
-SETTING_KEYS = ["abstract_word_limit", "data_cutoff_year",
+SETTING_KEYS = ["review_model", "citation_style", "old_reference_years", "old_reference_share",
+                "self_citation_share", "limits", "title_max_words", "require_running_title", "abstract_structure",
+                "abstract_headings", "keywords", "require_highlights", "highlights", "require_line_numbers",
+                "require_double_spacing", "require_page_numbers", "p_value_style", "spelling",
+                "abstract_word_limit", "data_cutoff_year",
                 "extra_ignore_abbreviations", "skip_gene_and_chemical_symbols"]
 
 
@@ -72,6 +76,14 @@ def check_profile(profile):
         if severity not in SEVERITIES:
             raise ValueError(f"Profile '{profile['id']}', rule '{rule}': severity must be one of "
                              f"{', '.join(SEVERITIES)}, not '{severity}'")
+    model = profile.get("settings", {}).get("review_model", "single_blind")
+    if model not in REVIEW_MODELS:
+        raise ValueError(f"Profile '{profile['id']}': review_model must be one of "
+                         f"{', '.join(REVIEW_MODELS)}, not '{model}'")
+    style = profile.get("settings", {}).get("citation_style", "auto")
+    if style not in CITATION_STYLES:
+        raise ValueError(f"Profile '{profile['id']}': citation_style must be one of "
+                         f"{', '.join(CITATION_STYLES)}, not '{style}'")
 
 
 def load_settings(profile_id=None):

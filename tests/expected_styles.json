@@ -1,0 +1,404 @@
+{
+  "apa": {
+    "01_control_clean_rct.docx": [
+      "References|Citation style"
+    ],
+    "02_flawed_rct.docx": [
+      "References|Citation style"
+    ],
+    "03_systematic_review.docx": [
+      "References|Reference format"
+    ],
+    "04_animal_study.docx": [
+      "References|Citation style"
+    ],
+    "05_survey_minors.docx": [
+      "References|Citation style"
+    ],
+    "06_case_report.docx": [
+      "References|Citation style"
+    ],
+    "07_messy_headings.docx": [
+      "References|Citation style"
+    ],
+    "08_retrospective_waiver.docx": [
+      "References|Citation style"
+    ],
+    "09_qualitative_interviews.docx": [
+      "References|Citation style"
+    ],
+    "10_narrative_review.docx": [
+      "References|Citation style"
+    ],
+    "11_letter_to_editor.docx": [
+      "References|Citation style"
+    ],
+    "12_superscript_citations.docx": [
+      "References|Citation style"
+    ],
+    "13_double_blind_clean.docx": [
+      "References|Citation style"
+    ],
+    "14_double_blind_leaky.docx": [
+      "References|Citation style"
+    ],
+    "16_apa_flawed.docx": [
+      "References|In-text citations",
+      "References|Reference format"
+    ],
+    "17_ama_flawed.docx": [
+      "References|Citation style"
+    ],
+    "18_ieee_clean.docx": [
+      "References|Citation style"
+    ],
+    "19_declarations_complete.docx": [
+      "References|Citation style"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "References|Citation style"
+    ],
+    "21_case_report_no_consent.docx": [
+      "References|Citation style"
+    ],
+    "22_diagnostic_accuracy.docx": [
+      "References|Citation style"
+    ],
+    "23_humanities_essay.docx": [
+      "References|In-text citations",
+      "References|Reference format"
+    ],
+    "25_commentary.docx": [
+      "References|Citation style"
+    ],
+    "26_trial_protocol.docx": [
+      "References|Citation style"
+    ],
+    "27_short_communication.docx": [
+      "References|Citation style"
+    ],
+    "28_integrity_flags.docx": [
+      "References|Citation style"
+    ],
+    "29_formatting_ok.docx": [
+      "References|Citation style"
+    ],
+    "30_formatting_flawed.docx": [
+      "References|Citation style"
+    ],
+    "31_latex_paper.tex": [
+      "References|Citation style"
+    ],
+    "32_latex_bibfile.tex": [
+      "References|Citation style"
+    ],
+    "35_basics_flawed.docx": [
+      "References|Citation style"
+    ]
+  },
+  "harvard": {
+    "01_control_clean_rct.docx": [
+      "References|Citation style"
+    ],
+    "02_flawed_rct.docx": [
+      "References|Citation style"
+    ],
+    "03_systematic_review.docx": [
+      "References|Reference format"
+    ],
+    "04_animal_study.docx": [
+      "References|Citation style"
+    ],
+    "05_survey_minors.docx": [
+      "References|Citation style"
+    ],
+    "06_case_report.docx": [
+      "References|Citation style"
+    ],
+    "07_messy_headings.docx": [
+      "References|Citation style"
+    ],
+    "08_retrospective_waiver.docx": [
+      "References|Citation style"
+    ],
+    "09_qualitative_interviews.docx": [
+      "References|Citation style"
+    ],
+    "10_narrative_review.docx": [
+      "References|Citation style"
+    ],
+    "11_letter_to_editor.docx": [
+      "References|Citation style"
+    ],
+    "12_superscript_citations.docx": [
+      "References|Citation style"
+    ],
+    "13_double_blind_clean.docx": [
+      "References|Citation style"
+    ],
+    "14_double_blind_leaky.docx": [
+      "References|Citation style"
+    ],
+    "16_apa_flawed.docx": [
+      "References|Reference format"
+    ],
+    "17_ama_flawed.docx": [
+      "References|Citation style"
+    ],
+    "18_ieee_clean.docx": [
+      "References|Citation style"
+    ],
+    "19_declarations_complete.docx": [
+      "References|Citation style"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "References|Citation style"
+    ],
+    "21_case_report_no_consent.docx": [
+      "References|Citation style"
+    ],
+    "22_diagnostic_accuracy.docx": [
+      "References|Citation style"
+    ],
+    "23_humanities_essay.docx": [
+      "References|Reference format"
+    ],
+    "25_commentary.docx": [
+      "References|Citation style"
+    ],
+    "26_trial_protocol.docx": [
+      "References|Citation style"
+    ],
+    "27_short_communication.docx": [
+      "References|Citation style"
+    ],
+    "28_integrity_flags.docx": [
+      "References|Citation style"
+    ],
+    "29_formatting_ok.docx": [
+      "References|Citation style"
+    ],
+    "30_formatting_flawed.docx": [
+      "References|Citation style"
+    ],
+    "31_latex_paper.tex": [
+      "References|Citation style"
+    ],
+    "32_latex_bibfile.tex": [
+      "References|Citation style"
+    ],
+    "35_basics_flawed.docx": [
+      "References|Citation style"
+    ]
+  },
+  "ama": {
+    "01_control_clean_rct.docx": [
+      "References|In-text citations"
+    ],
+    "02_flawed_rct.docx": [
+      "References|In-text citations"
+    ],
+    "03_systematic_review.docx": [
+      "References|Citation style"
+    ],
+    "04_animal_study.docx": [
+      "References|In-text citations"
+    ],
+    "05_survey_minors.docx": [
+      "References|In-text citations"
+    ],
+    "06_case_report.docx": [
+      "References|In-text citations"
+    ],
+    "07_messy_headings.docx": [
+      "References|In-text citations"
+    ],
+    "08_retrospective_waiver.docx": [
+      "References|In-text citations"
+    ],
+    "09_qualitative_interviews.docx": [
+      "References|In-text citations"
+    ],
+    "10_narrative_review.docx": [
+      "References|In-text citations"
+    ],
+    "11_letter_to_editor.docx": [
+      "References|In-text citations"
+    ],
+    "13_double_blind_clean.docx": [
+      "References|In-text citations"
+    ],
+    "14_double_blind_leaky.docx": [
+      "References|In-text citations"
+    ],
+    "15_apa_clean.docx": [
+      "References|Citation style"
+    ],
+    "16_apa_flawed.docx": [
+      "References|Citation style"
+    ],
+    "17_ama_flawed.docx": [
+      "References|Reference format"
+    ],
+    "18_ieee_clean.docx": [
+      "References|In-text citations",
+      "References|Reference format"
+    ],
+    "19_declarations_complete.docx": [
+      "References|In-text citations"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "References|In-text citations"
+    ],
+    "21_case_report_no_consent.docx": [
+      "References|In-text citations"
+    ],
+    "22_diagnostic_accuracy.docx": [
+      "References|In-text citations"
+    ],
+    "23_humanities_essay.docx": [
+      "References|Citation style"
+    ],
+    "24_apa_method_heading.docx": [
+      "References|Citation style"
+    ],
+    "25_commentary.docx": [
+      "References|In-text citations"
+    ],
+    "26_trial_protocol.docx": [
+      "References|In-text citations"
+    ],
+    "27_short_communication.docx": [
+      "References|In-text citations"
+    ],
+    "28_integrity_flags.docx": [
+      "References|In-text citations"
+    ],
+    "29_formatting_ok.docx": [
+      "References|In-text citations"
+    ],
+    "30_formatting_flawed.docx": [
+      "References|In-text citations"
+    ]
+  },
+  "vancouver": {
+    "03_systematic_review.docx": [
+      "References|Citation style"
+    ],
+    "15_apa_clean.docx": [
+      "References|Citation style"
+    ],
+    "16_apa_flawed.docx": [
+      "References|Citation style"
+    ],
+    "17_ama_flawed.docx": [
+      "References|Reference format"
+    ],
+    "18_ieee_clean.docx": [
+      "References|Reference format"
+    ],
+    "23_humanities_essay.docx": [
+      "References|Citation style"
+    ],
+    "24_apa_method_heading.docx": [
+      "References|Citation style"
+    ]
+  },
+  "ieee": {
+    "01_control_clean_rct.docx": [
+      "References|Reference format"
+    ],
+    "02_flawed_rct.docx": [
+      "References|Reference format"
+    ],
+    "03_systematic_review.docx": [
+      "References|Citation style"
+    ],
+    "04_animal_study.docx": [
+      "References|Reference format"
+    ],
+    "05_survey_minors.docx": [
+      "References|Reference format"
+    ],
+    "06_case_report.docx": [
+      "References|Reference format"
+    ],
+    "07_messy_headings.docx": [
+      "References|Reference format"
+    ],
+    "08_retrospective_waiver.docx": [
+      "References|Reference format"
+    ],
+    "09_qualitative_interviews.docx": [
+      "References|Reference format"
+    ],
+    "10_narrative_review.docx": [
+      "References|Reference format"
+    ],
+    "11_letter_to_editor.docx": [
+      "References|Reference format"
+    ],
+    "12_superscript_citations.docx": [
+      "References|In-text citations",
+      "References|Reference format"
+    ],
+    "13_double_blind_clean.docx": [
+      "References|Reference format"
+    ],
+    "14_double_blind_leaky.docx": [
+      "References|Reference format"
+    ],
+    "15_apa_clean.docx": [
+      "References|Citation style"
+    ],
+    "16_apa_flawed.docx": [
+      "References|Citation style"
+    ],
+    "17_ama_flawed.docx": [
+      "References|In-text citations",
+      "References|Reference format"
+    ],
+    "19_declarations_complete.docx": [
+      "References|Reference format"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "References|Reference format"
+    ],
+    "21_case_report_no_consent.docx": [
+      "References|Reference format"
+    ],
+    "22_diagnostic_accuracy.docx": [
+      "References|Reference format"
+    ],
+    "23_humanities_essay.docx": [
+      "References|Citation style"
+    ],
+    "24_apa_method_heading.docx": [
+      "References|Citation style"
+    ],
+    "25_commentary.docx": [
+      "References|Reference format"
+    ],
+    "26_trial_protocol.docx": [
+      "References|Reference format"
+    ],
+    "27_short_communication.docx": [
+      "References|Reference format"
+    ],
+    "28_integrity_flags.docx": [
+      "References|Reference format"
+    ],
+    "29_formatting_ok.docx": [
+      "References|Reference format"
+    ],
+    "30_formatting_flawed.docx": [
+      "References|Reference format"
+    ],
+    "31_latex_paper.tex": [
+      "References|Reference format"
+    ],
+    "35_basics_flawed.docx": [
+      "References|Reference format"
+    ]
+  }
+}

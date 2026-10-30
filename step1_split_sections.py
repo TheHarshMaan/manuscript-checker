@@ -13,13 +13,21 @@ from docx import Document
 # Section names we look for. Each key is the "official" name;
 # the list holds other ways authors write it.
 SECTION_NAMES = {
-    "Abstract":              ["abstract", "summary"],
-    "Keywords":              ["keywords", "key words"],
+    "Abstract":              ["abstract", "summary", "structured abstract"],
+    "Keywords":              ["keywords", "key words", "index terms", "key terms"],
+    "Highlights":            ["highlights", "key points", "key messages", "what is already known",
+                              "what this study adds", "research highlights"],
     "Introduction":          ["introduction", "background"],
     "Methods":               ["methods", "materials and methods", "material and methods", "methodology",
                               "patients and methods", "methods and materials", "subjects and methods",
-                              "materials & methods", "study design and methods", "methods and analysis"],
-    "Results":               ["results", "findings"],
+                              "materials & methods", "study design and methods", "methods and analysis",
+                              "method", "experimental", "experimental section", "experimental procedures",
+                              "participants and methods", "proposed method", "proposed approach",
+                              "materials and experimental methods", "research methodology", "methods and design"],
+    "Related work":          ["related work", "related works", "literature review", "review of literature",
+                              "theoretical framework", "theoretical background"],
+    "Results":               ["results", "findings", "experiments", "experimental results", "evaluation",
+                              "results and analysis", "experiments and results"],
     "Results and discussion": ["results and discussion", "results & discussion"],
     "Case presentation":     ["case presentation", "case report", "case description", "case history",
                               "case details", "case summary"],
@@ -40,7 +48,9 @@ SECTION_NAMES = {
     "Consent":               ["consent", "consent for publication", "patient consent", "informed consent"],
     "Data availability":     ["data availability", "data availability statement", "availability of data and materials",
                               "data sharing statement"],
-    "References":            ["references", "bibliography", "literature cited", "reference list"],
+    "Data records":          ["data records", "technical validation", "usage notes", "data description"],
+    "References":            ["references", "bibliography", "literature cited", "reference list", "works cited",
+                              "cited works", "sources"],
 }
 
 
@@ -89,9 +99,20 @@ def paragraph_text(p):
     return out if p.runs else p.text
 
 
-def split_into_sections(path):
-    """Read the .docx and return a list of (section_name, [paragraph texts])."""
-    doc = Document(path)
+def open_document(path, name=None):
+    """A Word document, or a stand-in for PDF, ODT, RTF and LaTeX files (see readers.py)."""
+    from readers import READERS, file_kind
+    kind = file_kind(path, name)
+    if kind == ".doc":
+        raise ValueError("old Word .doc files can't be read; in Word, use File → Save As → .docx")
+    if kind in READERS:
+        return READERS[kind](path)
+    return Document(path)
+
+
+def split_into_sections(path, name=None):
+    """Read the manuscript and return a list of (section_name, [paragraph texts]), and the document."""
+    doc = open_document(path, name)
     sections = [("Front matter", [])]        # title, authors etc. before the first heading
 
     for p in doc.paragraphs:

@@ -42,8 +42,10 @@ def numbers_in(text):
     return nums
 
 
-def check_figures_tables(path):
-    sections, doc = split_into_sections(path)
+def check_figures_tables(path, sections=None, doc=None):
+    """`sections` and `doc` can be passed in when the manuscript has already been read."""
+    if sections is None:
+        sections, doc = split_into_sections(path)
 
     cited = {"Figure": [], "Table": []}       # in order of first appearance
     captions = {"Figure": set(), "Table": set()}

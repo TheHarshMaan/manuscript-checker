@@ -19,9 +19,20 @@ def has(pattern, text):
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 
+# Abbreviations that end in a full stop but don't end a sentence: "approval no. 45", "et al. 2020", "Fig. 2"
+ABBREVIATIONS = r"(?:no|No|NO|nos|Nos|ref|Ref|vs|al|Dr|Prof|Fig|Figs|fig|approx|e\.g|i\.e|cf|St|Mr|Mrs|Ms|Vol|vol|pp|p|Sr|Jr|Ltd|Inc|Co|Dept|Univ|Govt)"
+KEEP = "\u2060"   # an invisible joiner put after those abbreviations while splitting
+
+
+def split_sentences(text):
+    """Split text into sentences, without breaking after abbreviations like 'no.' or 'et al.'."""
+    protected = re.sub(rf"\b({ABBREVIATIONS})\.\s+", rf"\1.{KEEP}", text)
+    return [s.replace(KEEP, " ") for s in re.split(r"(?<=[.!?])\s+", protected)]
+
+
 def sentences_with(pattern, text):
     """Return only the sentences that contain the pattern."""
-    sentences = re.split(r"(?<=[.!?])\s+", text)
+    sentences = split_sentences(text)
     return " ".join(s for s in sentences if has(pattern, s))
 
 
@@ -30,7 +41,7 @@ NEGATION = r"\b(no|not|neither|nor|without|none)\b"
 
 def affirmative(text):
     """Drop sentences that deny something, e.g. 'No human participants or animals were involved.'"""
-    sentences = re.split(r"(?<=[.!?])\s+", text)
+    sentences = split_sentences(text)
     return " ".join(s for s in sentences if not has(NEGATION, s))
 
 
@@ -45,14 +56,52 @@ def study_text(sections):
     return affirmative(methods)
 
 
+# Labels authors put above the title, e.g. "Original Article", "Short Communication"
+TYPE_LABELS = [
+    ("correction",          r"erratum|corrigendum|correction(?: notice)?"),
+    ("book review",         r"book review"),
+    ("letter",              r"letter(?: to the editor)?|correspondence|research letter"),
+    ("short communication", r"short communication|brief (?:report|communication)|rapid communication|short report"),
+    ("commentary",          r"commentary|perspective|viewpoint|opinion|editorial|essay|policy (?:brief|forum)"),
+    ("protocol",            r"(?:study )?protocol"),
+    ("data paper",          r"data (?:descriptor|paper|note|article)"),
+    ("methods",             r"methods? (?:paper|article)|technical note|method article"),
+    ("case report",         r"case report|case series|clinical image"),
+    ("narrative review",    r"(?:narrative |mini[- ]?)?review(?: article)?"),
+]
+# Types that report a study with participants, samples or data (sample size, study period, criteria apply)
+STUDY_TYPES = ("research", "short communication", "protocol", "methods")
+# Types with no participants of their own (no ethics or consent statement expected)
+NO_PARTICIPANTS = ("letter", "narrative review", "commentary", "book review", "correction")
+
+
 def article_type(sections):
-    """'case report', 'letter', 'narrative review' or 'research', judged from the headings
-    and from how the paper describes itself in its title, abstract and keywords."""
+    """The kind of article, judged from a label line above the title (e.g. "Short Communication"), the
+    headings, and how the paper describes itself in its title, abstract and keywords. One of:
+    research, short communication, case report, letter, narrative review, commentary, protocol,
+    methods, data paper, book review, correction."""
+    front = [t for name, paras in sections if name == "Front matter" for t in paras]
+    for line in front[:4]:
+        for kind, pattern in TYPE_LABELS:
+            if len(line) < 40 and re.fullmatch(rf"\s*(?:article type:\s*)?(?:{pattern})\s*:?\s*", line, re.IGNORECASE):
+                return kind
+    title = front[0] if front else ""
     opening = " ".join(t for name, paras in sections if name in ("Front matter", "Abstract", "Keywords") for t in paras)
+    if has(r"^\s*(?:erratum|corrigendum|correction to)\b", title):
+        return "correction"
     if has(r"letter to the editor|letter to editor|\bdear editor\b", opening):
         return "letter"
     if any(name == "Case presentation" for name, _ in sections) or has(r"\bcase report\b|\bcase series\b", opening):
         return "case report"
+    if has(r"\bstudy protocol\b|\bprotocol for an?\b|:\s*(?:a |the )?protocol\b", title):
+        return "protocol"
+    if has(r"\bdata (?:descriptor|paper|note)\b|\bdataset\b.*\bdescri", title) or \
+            any(name == "Data records" for name, _ in sections):
+        return "data paper"
+    if has(r":\s*(?:a |an )?(?:commentary|perspective|viewpoint|editorial|opinion)\b", title):
+        return "commentary"
+    if has(r"\b(?:brief report|short communication|research letter)\b", title):
+        return "short communication"
     if (has(r"narrative review|literature review|review article|mini[- ]?review", opening)
             and not has(r"systematic review|meta-analys|scoping review", opening)):
         return "narrative review"
@@ -113,7 +162,7 @@ def check_declarations(sections):
         if heading not in headings and not has(words, body):
             issues.append(("Declarations", name, "Missing", f"No {name.lower()} statement found", rule))
 
-    if article_type(sections) in ("letter", "narrative review"):
+    if article_type(sections) in NO_PARTICIPANTS:
         return issues   # no participants: ethics and consent statements don't apply
 
     # --- Ethics
@@ -180,8 +229,9 @@ def check_study_details(sections, settings=None):
 
     review = has(r"systematic review|meta-analys|scoping review|narrative review", body)
     human, animal, study = study_type(sections)
-    if article_type(sections) != "research":
-        return issues   # case reports, letters and narrative reviews have no sample, study period or criteria
+    kind = article_type(sections)
+    if kind not in STUDY_TYPES:
+        return issues   # case reports, letters, reviews, commentaries… have no sample, study period or criteria
 
     # --- Sample size ("312 patients", "80 school children", "24 community health workers", "n = 45")
     number = r"(\d[\d,]*|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty|thirty|fifty|hundred)"
@@ -192,12 +242,18 @@ def check_study_details(sections, settings=None):
         issues.append(("Study details", "Sample size", "Missing", "No sample size found", "sample_size"))
 
     # --- Study period and data age
+    # years that name a guideline or declaration aren't study dates: "STARD 2015", "Helsinki (revised 2013)"
+    where = re.sub(r"\b(?:CONSORT|STROBE|PRISMA|STARD|ARRIVE|CARE|SPIRIT|TRIPOD|CHEERS|SQUIRE|COREQ|SRQR|MOOSE|AGREE|"
+                   r"GRADE|ICMR|ICH|GCP)(?:[- ](?:P|ScR|AI|statement|guidelines?|checklist|extension|version))?"
+                   r"\s*[(,]?\s*(?:19|20)\d{2}\b"
+                   r"|\bHelsinki\s*[(,]?\s*(?:as\s+)?(?:revised|amended|updated)?\s*(?:in\s+)?(?:19|20)\d{2}\b",
+                   " ", where)
     period = sentences_with(r"\b(19|20)\d{2}\b", where)
     period = sentences_with(r"between|from|during|collected|enrolled|recruited|conducted|period|"
                             r"retrospective|prospective|until|to\s+\w+\s+\d{4}|\bin\s+(19|20)\d{2}", period)
     years = [int(y) for y in re.findall(r"\b((?:19|20)\d{2})\b", period)]
-    if review:
-        pass   # in reviews, years are publication dates, not data collection
+    if review or kind == "protocol":
+        pass   # in reviews, years are publication dates; in protocols, dates are planned, not past
     elif not years:
         issues.append(("Study details", "Study duration", "Missing", "No study period found in the Methods", "study_period"))
     elif min(years) < cutoff:
@@ -234,47 +290,13 @@ def check_study_details(sections, settings=None):
     return issues
 
 
-def check_references(sections):
-    issues = []
-    refs = [t for name, paras in sections if name == "References" for t in paras]
-    if not refs:
-        issues.append(("References", "Reference list", "Missing", "No References section found", "reference_list"))
-        return issues
-
-    numbered = sum(1 for r in refs if re.match(r"^\[?\d+[.)\]]?\s", r)) >= len(refs) / 2
-    if not numbered:
-        return issues    # author-year style: number checks don't apply
-
-    body = " ".join(t for name, paras in sections if name != "References" for t in paras)
-    cited = set()
-    for group in re.findall(r"\[([\d,\s–\-]+)\]", body):
-        for part in re.split(r"\s*,\s*", group):
-            rng = re.match(r"(\d+)\s*[–-]\s*(\d+)", part)
-            if rng:
-                cited.update(range(int(rng.group(1)), int(rng.group(2)) + 1))
-            elif part.strip().isdigit():
-                cited.add(int(part.strip()))
-
-    if not cited:
-        issues.append(("References", "Citation check", "Concern",
-                       "No bracketed citations like [1] found (may use superscripts)", "citation_format"))
-        return issues
-
-    total = len(refs)
-    beyond = sorted(n for n in cited if n > total)
-    never = sorted(set(range(1, total + 1)) - cited)
-    if beyond:
-        issues.append(("References", "Citation not in list", "Missing",
-                       f"Cited in text but not in the list: {', '.join(map(str, beyond))}", "citation_not_in_list"))
-    if never:
-        issues.append(("References", "Reference not cited", "Concern",
-                       f"In the list but never cited: {', '.join(map(str, never))}", "reference_not_cited"))
-    return issues
+# The reference checks moved to step6_citations.py (numbered and author-date styles).
+from step6_citations import check_references   # noqa: E402  (kept importable from here)
 
 
 def run_all(path):
-    sections, _ = split_into_sections(path)
-    return check_declarations(sections) + check_study_details(sections) + check_references(sections)
+    sections, doc = split_into_sections(path)
+    return check_declarations(sections) + check_study_details(sections) + check_references(sections, doc)
 
 
 def main():

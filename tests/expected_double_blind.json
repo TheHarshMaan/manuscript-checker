@@ -1,0 +1,112 @@
+{
+  "01_control_clean_rct.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "02_flawed_rct.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "03_systematic_review.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "04_animal_study.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "05_survey_minors.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "06_case_report.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "07_messy_headings.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "08_retrospective_waiver.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "09_qualitative_interviews.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "10_narrative_review.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "11_letter_to_editor.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "12_superscript_citations.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "13_double_blind_clean.docx": [],
+  "14_double_blind_leaky.docx": [
+    "Anonymisation|Acknowledgements",
+    "Anonymisation|Author names in text",
+    "Anonymisation|Emails / ORCID iDs",
+    "Anonymisation|File properties",
+    "Anonymisation|Headers / footers",
+    "Anonymisation|Institution named",
+    "Anonymisation|Self-citation",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "15_apa_clean.docx": [],
+  "16_apa_flawed.docx": [],
+  "17_ama_flawed.docx": [],
+  "18_ieee_clean.docx": [],
+  "19_declarations_complete.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "20_declarations_flawed_trial.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "21_case_report_no_consent.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "22_diagnostic_accuracy.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "23_humanities_essay.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "24_apa_method_heading.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "25_commentary.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "26_trial_protocol.docx": [
+    "Anonymisation|Institution named",
+    "Anonymisation|Title page in manuscript"
+  ],
+  "27_short_communication.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "28_integrity_flags.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "29_formatting_ok.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "30_formatting_flawed.docx": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "31_latex_paper.tex": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "32_latex_bibfile.tex": [
+    "Anonymisation|Title page in manuscript"
+  ],
+  "33_cover_letter.docx": [],
+  "34_title_page.docx": [],
+  "35_basics_flawed.docx": [],
+  "36_no_ethics_no_references.docx": []
+}

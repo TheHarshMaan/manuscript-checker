@@ -11,12 +11,13 @@ from pathlib import Path
 
 import yaml
 
-from checker import check_manuscript, build_workbook, verdict, counts
+from checker import check_file, build_workbook, build_word_report, verdict, counts
 from settings import list_profiles, load_profile, merge, check_profile
-from rules import RULES, SEVERITY_LABEL
+from rules import RULES, SEVERITY_LABEL, REVIEW_MODELS, CITATION_STYLES, FIXES
 
 UPLOADS = Path("/tmp/uploads")        # where the page puts uploaded files (in the browser's memory)
 REPORT = Path("/tmp/screening_report.xlsx")
+WORD_REPORT = Path("/tmp/screening_report.docx")
 
 
 def catalogue():
@@ -26,6 +27,8 @@ def catalogue():
         "rules": [{"id": rid, "area": area, "label": label, "what": what}
                   for rid, (area, label, what) in RULES.items()],
         "severity_labels": SEVERITY_LABEL,
+        "review_models": REVIEW_MODELS,
+        "citation_styles": CITATION_STYLES,
     })
 
 
@@ -61,26 +64,34 @@ def save_profile(profile_json, base_json):
     return yaml.safe_dump(out, sort_keys=False, allow_unicode=True)
 
 
-def check(files_json, profile_json):
-    """Check the uploaded files (already written to /tmp/uploads by the page) and build the Excel report."""
-    files, prof = json.loads(files_json), json.loads(profile_json)    # files: [{"path", "name"}]
+def check(files_json, profile_json, dismissed_json="[]"):
+    """Check the uploaded files (already written to /tmp/uploads by the page) and build the Excel and Word reports.
+    files: [{"path", "name"}]; dismissed: [{"name", "key"}] issues the visitor marked as false alarms, which are
+    left out of the downloaded reports."""
+    files, prof = json.loads(files_json), json.loads(profile_json)
+    dismissed = {(d["name"], d["key"]) for d in json.loads(dismissed_json or "[]")}
     check_profile(prof)
-    results, out = [], []
+    results, infos, out = [], {}, []
     for f in files:
         name = f["name"]
         try:
-            issues = check_manuscript(UPLOADS / f["path"], prof)
+            issues, info = check_file(UPLOADS / f["path"], prof, name)
         except Exception as e:
             results.append((name, None))
-            out.append({"name": name, "error": f"Could not read this file ({type(e).__name__})"})
+            reason = str(e) if "can't be read" in str(e) else f"could not read this file ({type(e).__name__})"
+            out.append({"name": name, "error": reason[:1].upper() + reason[1:]})
             continue
-        results.append((name, issues))
-        out.append({"name": name, "verdict": verdict(issues), "counts": counts(issues),
-                    "issues": [{"section": i.section, "check": i.check, "status": i.status,
-                                "details": i.details, "rule": i.rule, "severity": i.severity}
+        infos[name] = info
+        results.append((name, [i for i in issues if (name, f"{i.section}|{i.check}") not in dismissed]))
+        out.append({"name": name, "verdict": verdict(issues), "counts": counts(issues), "info": info,
+                    "issues": [{"section": i.section, "check": i.check, "status": i.status, "details": i.details,
+                                "rule": i.rule, "severity": i.severity, "key": f"{i.section}|{i.check}",
+                                "fix": FIXES.get(i.rule, ("", ""))[0], "source": FIXES.get(i.rule, ("", ""))[1]}
                                for i in issues]})
-    wb = build_workbook(results, prof.get("name", ""))
+    wb = build_workbook(results, prof.get("name", ""), infos)
     has_report = bool(wb.sheetnames)
     if has_report:
         wb.save(REPORT)
-    return json.dumps({"results": out, "report": str(REPORT) if has_report else None})
+        build_word_report(results, prof.get("name", ""), infos).save(WORD_REPORT)
+    return json.dumps({"results": out, "report": str(REPORT) if has_report else None,
+                       "word": str(WORD_REPORT) if has_report else None})

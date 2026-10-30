@@ -22,10 +22,14 @@ WEB = HERE / "web"
 BUNDLE = WEB / "checker_bundle.zip"
 
 CHECKER_FILES = ["rules.py", "settings.py", "checker.py", "web_entry.py", "step1_split_sections.py",
-                 "step2_figures_tables.py", "step3_abbreviations.py", "step4_declarations.py"]
+                 "step2_figures_tables.py", "step3_abbreviations.py", "step4_declarations.py",
+                 "step5_anonymisation.py", "step6_citations.py",
+                 "step7_policies.py", "step8_guidelines.py",
+                 "step9_integrity.py", "step10_formatting.py",
+                 "step11_submission.py", "readers.py"]
 # Pure-Python libraries copied from your own Python installation (pip install -r requirements.txt).
 # lxml and pyyaml are not here: the browser version of Python already provides them.
-LIBRARIES = ["docx", "openpyxl", "et_xmlfile"]
+LIBRARIES = ["docx", "openpyxl", "et_xmlfile", "pypdf"]
 # Files the page needs, besides the bundle
 PAGE_FILES = ["index.html", "style.css", "app.js", "worker.js", "grey_swan_emblem.png", "favicon.png"]
 

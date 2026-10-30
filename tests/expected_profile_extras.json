@@ -1,0 +1,102 @@
+{
+  "formatting_test": {
+    "30_formatting_flawed.docx": [
+      "Abstract|Abstract length",
+      "Formatting|Abstract structure",
+      "Formatting|Highlights",
+      "Formatting|Line numbers",
+      "Formatting|Line spacing",
+      "Formatting|Number of figures and tables",
+      "Formatting|Number of keywords",
+      "Formatting|Number of references",
+      "Formatting|Page numbers",
+      "Formatting|Running title",
+      "Formatting|Title length",
+      "Formatting|Word count"
+    ]
+  },
+  "apa_journal": {
+    "01_control_clean_rct.docx": [
+      "Formatting|Spelling"
+    ],
+    "02_flawed_rct.docx": [
+      "Formatting|Spelling"
+    ],
+    "07_messy_headings.docx": [
+      "Formatting|Spelling"
+    ],
+    "10_narrative_review.docx": [
+      "Formatting|Spelling"
+    ],
+    "13_double_blind_clean.docx": [
+      "Formatting|Spelling"
+    ],
+    "14_double_blind_leaky.docx": [
+      "Formatting|Spelling"
+    ],
+    "15_apa_clean.docx": [
+      "Formatting|Spelling"
+    ],
+    "16_apa_flawed.docx": [
+      "Formatting|Spelling"
+    ],
+    "17_ama_flawed.docx": [
+      "Formatting|Spelling"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "Formatting|Spelling"
+    ],
+    "24_apa_method_heading.docx": [
+      "Formatting|Spelling"
+    ],
+    "26_trial_protocol.docx": [
+      "Formatting|Spelling"
+    ],
+    "29_formatting_ok.docx": [
+      "Formatting|Spelling",
+      "Formatting|p-values"
+    ]
+  },
+  "ama_journal": {
+    "01_control_clean_rct.docx": [
+      "Formatting|Spelling"
+    ],
+    "02_flawed_rct.docx": [
+      "Formatting|Spelling"
+    ],
+    "07_messy_headings.docx": [
+      "Formatting|Spelling"
+    ],
+    "10_narrative_review.docx": [
+      "Formatting|Spelling"
+    ],
+    "13_double_blind_clean.docx": [
+      "Formatting|Spelling"
+    ],
+    "14_double_blind_leaky.docx": [
+      "Formatting|Spelling"
+    ],
+    "15_apa_clean.docx": [
+      "Formatting|Spelling"
+    ],
+    "16_apa_flawed.docx": [
+      "Formatting|Spelling"
+    ],
+    "17_ama_flawed.docx": [
+      "Formatting|Spelling"
+    ],
+    "20_declarations_flawed_trial.docx": [
+      "Formatting|Spelling"
+    ],
+    "24_apa_method_heading.docx": [
+      "Formatting|Spelling"
+    ],
+    "26_trial_protocol.docx": [
+      "Formatting|Spelling"
+    ],
+    "29_formatting_ok.docx": [
+      "Formatting|Spelling",
+      "Formatting|p-values"
+    ]
+  }
+}

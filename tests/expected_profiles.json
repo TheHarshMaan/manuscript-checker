@@ -1,0 +1,16 @@
+{
+  "humanities_journal": {
+    "23_humanities_essay.docx": [],
+    "24_apa_method_heading.docx": []
+  },
+  "apa_journal": {
+    "24_apa_method_heading.docx": []
+  },
+  "ieee_journal": {
+    "23_humanities_essay.docx": [
+      "Declarations|Ethics statement",
+      "References|Old references",
+      "Study details|Sample size"
+    ]
+  }
+}

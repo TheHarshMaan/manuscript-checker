@@ -2,9 +2,11 @@
 google_key.json
 *.json
 !settings.json
+!tests/*.json
 
 # Reports and test output
 screening_report.xlsx
+screening_report.docx
 batch/
 test_batch/
 

@@ -1,33 +1,40 @@
 # Manuscript Pre-Submission Checker
 
-A Python tool that runs the technical checks a journal's screening desk performs before peer review, and produces a clear, colour-coded report of what is missing or needs attention. Use it from the command line or as a website that runs entirely in the browser.
+A Python tool that runs the technical checks a journal's screening desk performs before peer review, and produces a clear report of what is missing or needs attention, with how to fix each item. Use it from the command line or as a website that runs entirely in the browser.
 
-Built from experience screening 900+ manuscripts as a journal screening editor. The tool **flags issues for a human to review**; it does not make editorial decisions.
+Built from experience screening 900+ manuscripts as a journal screening editor. The tool **flags issues for a person to review**; it does not make editorial decisions.
 
-**Try it online:** [thegreyswan.in/checker](https://thegreyswan.in/checker/), by The Grey Swan Editorial. Manuscripts are checked inside your browser and never uploaded.
+**Try it online:** [thegreyswan.in/checker](https://thegreyswan.in/checker/), by The Grey Swan Editorial. Files are checked inside your browser and never uploaded.
 
 ## What it checks
 
+Journals don't all screen the same way, so every check belongs to a **journal profile** that decides whether it runs and how serious it is (see [Journal profiles](#journal-profiles)). 95 rules in all; `rules.py` lists every one with what it checks, how to fix it and where the requirement comes from.
+
 | Area | Checks |
 | --- | --- |
-| Structure | IMRaD sections present, abstract present and within word limit, keywords |
-| Abbreviations | Never defined, used before definition, defined twice, defined but not used (abstract and main text checked separately). Common lab and statistics terms, gene, cell-line and chemical names are skipped unless the authors define them |
-| Figures & tables | Every figure/table cited, cited in numerical order, no numbering gaps, legends match citations |
-| Declarations | Ethics approval (committee name, approval number, date), consent (written/verbal/waived, contradictions, minors), conflict of interest, funding, author contributions, acknowledgements, data availability |
-| Study details | Sample size, study period, data collected before 2020, inclusion/exclusion criteria, questionnaires supplied, euthanasia for animal studies, trial/PROSPERO registration (only when the study type requires it) |
-| References | Numbered citations match the reference list; uncited references |
+| Structure | Sections each article type needs (IMRaD for research, Case presentation for case reports…), abstract and its word limit, keywords, tracked changes or comments left in the file |
+| Article types | Research article, short communication, case report, letter, narrative review, commentary/editorial, study protocol, methods paper, data paper, book review, correction — each with its own required sections and checks |
+| Abbreviations | Not defined, used before definition, defined twice, defined but not used (abstract and main text separately); common terms, gene, cell-line and chemical names skipped |
+| Figures & tables | All cited, cited in order, no numbering gaps, captions present, tables in the file match citations, permission for reproduced figures |
+| Declarations | Ethics approval (committee, number, date), consent (written/verbal/waived, minors, consent for publication in case reports), conflicts of interest, funding and grant numbers, author contributions and CRediT roles, acknowledgements, data and code availability, generative AI statement, Declaration of Helsinki, corresponding author, ORCID iDs |
+| Reporting guidelines | Detects the study design and checks the EQUATOR guideline is named and its key items are present: CONSORT, SPIRIT, PRISMA, STROBE, CARE, ARRIVE, STARD, COREQ/SRQR, TRIPOD, CHEERS, SQUIRE |
+| Study details | Sample size, study period, old data, inclusion/exclusion criteria, questionnaires supplied, euthanasia, trial and PROSPERO registration (only when the design needs it), registration before the study started, sex and gender reporting (SAGER) |
+| References & citation style | Every citation in the list and every reference cited, for numbered and author–date systems; cited in order; alphabetical author–date lists; no mixed systems; old references. With a named style (APA 7, Harvard, AMA, Vancouver, IEEE): the right system, in-text form and reference-list format |
+| Double-blind review | No title page, emails, ORCID iDs or author names in the manuscript, headers or footers; clean Word file properties; no first-person self-citation; acknowledgements and institutions blinded |
+| Integrity red flags | Tortured phrases (paraphrasing-tool fingerprints), chatbot leftovers, hidden text and instructions aimed at AI reviewers, an AI tool listed as an author, free-mail corresponding author, percentages that don't match their numbers, impossible values, high self-citation |
+| Formatting | Always: US/UK spelling mixed, p = 0.000, sentences starting with a numeral. When the profile asks: word, reference and figure limits per article type, title length, running title, structured or unstructured abstract and its headings, number of keywords, highlights/key points, line numbers, double spacing, page numbers, p-value style, US or UK spelling |
+| Submission files | Recognises a separate title page (authors, affiliations, corresponding author) and cover letter (originality, conflicts of interest) and checks them as such |
 
-The checker works out what kind of study it is reading. A cell-line study isn't asked for patient consent, a systematic review isn't asked for ethics approval, and sentences like "no animals were involved" aren't mistaken for an animal study.
+**File formats:** Word (.docx) gives the fullest check. PDF, OpenDocument (.odt), RTF and LaTeX (.tex) are read too; the report notes what each can't show (a PDF has no tracked changes, hidden-text colour or superscripts, for example).
 
-Every issue comes with a **severity** (Must fix / Should fix / Advisory), a status (**Missing** / **Concern**) and a plain description of what was found. How serious each check is depends on the journal profile you choose (see below).
-
-The checker also recognises the type of article and applies the right rules: research papers are expected to follow IMRaD; case reports, narrative reviews and letters to the editor are not asked for Methods, Results or a sample size. Superscript citations (¹ ²) are read as well as bracketed ones ([1]).
+Every issue comes with a **severity** (Must fix / Should fix / Advisory), what was found, **how to fix it** and the **source** of the requirement (ICMJE, COPE, CONSORT, APA 7…). A file is **Ready** when nothing is Must fix or Should fix.
 
 ## Output
 
-- **Excel report** (`screening_report.xlsx`): one colour-coded sheet per manuscript, plus a summary sheet for batch runs.
-- **Website**: add files, see results on screen, download the Excel report. Runs in the browser; nothing is uploaded.
-- **Google Sheets** (optional, command line): appends results to a shared sheet as a running screening log, using the Google Sheets API.
+- **Website:** results on screen in *Author view* (most serious first, with how to fix) or *Editor view* (section by section, as a screening log); filter by severity; dismiss false alarms; download the Excel or Word report.
+- **Excel report** (`screening_report.xlsx`): one sheet per file, plus a summary sheet for batches.
+- **Word report** (`screening_report.docx`, with `--word`): for sending to authors or printing.
+- **Google Sheets** (optional, command line): appends results to a shared sheet as a running log.
 
 ## Setup
 
@@ -42,24 +49,19 @@ pip install -r requirements.txt
 ### Command line
 
 ```
-python checker.py manuscript.docx                            # one manuscript
-python checker.py my_folder                                  # every .docx in a folder
-python checker.py my_folder --profile strict_screening       # check against another journal profile
-python checker.py --profiles                                 # list the available profiles
-python checker.py my_folder --sheets                         # also send results to Google Sheets
+python checker.py manuscript.docx                       # one file (.docx, .pdf, .odt, .rtf or .tex)
+python checker.py my_folder                             # every file in a folder, e.g. a whole submission
+python checker.py my_folder --profile apa_journal       # check against another journal profile
+python checker.py --profiles                            # list the available profiles
+python checker.py my_folder --word                      # also save a Word report
+python checker.py my_folder --sheets                    # also send results to Google Sheets
 ```
 
-Try it on the included samples:
-
-```
-python checker.py batch
-```
-
-`sample_manuscript_clean.docx` should come back **Ready**; the others contain deliberately planted problems.
+Each step file can also be run on its own, e.g. `python step8_guidelines.py manuscript.docx` shows the detected study design and guideline.
 
 ### Website
 
-The website (`web/`) runs the same Python checker inside the visitor's browser using [Pyodide](https://pyodide.org), so there is no server and manuscripts never leave the visitor's computer. The page is plain HTML, CSS and JavaScript and can be hosted anywhere static files can, such as GitHub Pages.
+The website (`web/`) runs the same Python checker inside the visitor's browser using [Pyodide](https://pyodide.org), so there is no server and files never leave the visitor's computer. The page is plain HTML, CSS and JavaScript and can be hosted anywhere static files can, such as GitHub Pages.
 
 Build it after any change to a check, rule or profile:
 
@@ -68,13 +70,13 @@ python build_web.py                         # builds web/checker_bundle.zip
 python build_web.py ../my-site/checker      # also copies the finished page into your site's folder
 ```
 
-`checker_bundle.zip` holds the checker, the profiles and the two libraries the browser doesn't already have (python-docx and openpyxl, with their licences). To deploy, upload the files in `web/` to the site's `checker/` folder.
+`checker_bundle.zip` holds the checker, the profiles and the libraries the browser doesn't already have (python-docx, openpyxl and pypdf, with their licences). To deploy, upload the files in `web/` to the site's `checker/` folder.
 
-To try it on your own computer: `python -m http.server` from the `web/` folder, then open `http://localhost:8000`. (Opening `index.html` directly from disk won't work; browsers block the background worker for local files.)
+To try it on your own computer: `python -m http.server` from the `web/` folder, then open `http://localhost:8000`.
 
-### Journal profiles
+## Journal profiles
 
-Journals don't all screen the same way, so the rules aren't written into the code. A **profile** (a small file in `profiles/`) says which checks a journal runs and how serious each one is:
+A **profile** (a small file in `profiles/`) says which checks a journal runs and how serious each one is:
 
 | Severity | Meaning |
 | --- | --- |
@@ -83,14 +85,18 @@ Journals don't all screen the same way, so the rules aren't written into the cod
 | `advisory` | **Advisory**: worth a look, doesn't block the manuscript |
 | `off` | Not checked |
 
-A manuscript is **Ready** when nothing is Must fix or Should fix; advisories are listed but don't block it.
-
 Included profiles:
 
 | Profile | For |
 | --- | --- |
 | `generic` | The universal core most journals share (ICMJE basics). House-specific rules are advisory. Default. |
-| `strict_screening` | A strict screening desk: also follows up approval dates, data older than the cut-off year, verbal-only consent, supplied questionnaires and euthanasia statements. |
+| `generic_double_blind` | The generic core plus the anonymisation checks for double-blind review. |
+| `strict_screening` | A strict screening desk: approval dates, old data, verbal-only consent, questionnaires, euthanasia, guideline checklists followed up. |
+| `apa_journal` | APA 7 (psychology, social sciences): author–date citations, APA reference format, untitled introduction, p = .03, US spelling. |
+| `ama_journal` | AMA (medicine): superscript numbers, AMA reference format, P = .03, US spelling. |
+| `vancouver_journal` | Vancouver (biomedical): numbered citations, Vancouver reference format. |
+| `ieee_journal` | IEEE (engineering, computing): bracketed numbers, IEEE reference format, engineering-style sections. |
+| `humanities_journal` | History, literature, philosophy…: no IMRaD or study-design checks. |
 
 A profile can start from another one and list only what it changes:
 
@@ -98,27 +104,34 @@ A profile can start from another one and list only what it changes:
 name: My journal
 based_on: generic
 settings:
-  abstract_word_limit: 300
-  data_cutoff_year: 2018
-  extra_ignore_abbreviations: [ICU, MIC]
+  review_model: double_blind         # single_blind / double_blind / open
+  citation_style: vancouver          # auto / apa / harvard / ama / vancouver / ieee
+  limits:
+    research: {words: 4000, references: 50, figures_tables: 6, abstract_words: 300}
+    letter: {words: 800, references: 10, figures_tables: 1}
+  abstract_structure: structured
+  abstract_headings: [Background, Methods, Results, Conclusions]
+  keywords: {min: 3, max: 6}
+  require_line_numbers: true
+  spelling: uk
 required_sections:
   research: [Abstract, Introduction, Methods, Results, Discussion, References]   # no Keywords
 rules:
   ethics_date: must
-  acknowledgements: off
+  acknowledgements: 'off'
 ```
 
-Save it as `profiles/my_journal.yaml` and run with `--profile my_journal`. Every rule ID, and what it checks, is listed in `rules.py`. A misspelt rule ID or severity is reported straight away rather than silently ignored.
+Save it as `profiles/my_journal.yaml` and run with `--profile my_journal`. A misspelt rule ID, severity or setting is reported straight away rather than silently ignored.
 
-**Settings in a profile:** `abstract_word_limit`, `data_cutoff_year`, `extra_ignore_abbreviations`, `skip_gene_and_chemical_symbols` (skip names like TP53, MCF-7 and NaCl unless the authors define them), and `required_sections` for each article type (research, case report, narrative review, letter).
+**Settings** (all in `profiles/generic.yaml`, with comments): `review_model`, `citation_style`, `abstract_word_limit`, `data_cutoff_year`, `old_reference_years` and `old_reference_share`, `self_citation_share`, `extra_ignore_abbreviations`, `skip_gene_and_chemical_symbols`, `limits` (per article type), `title_max_words`, `require_running_title`, `abstract_structure` and `abstract_headings`, `keywords`, `require_highlights` and `highlights`, `require_line_numbers`, `require_double_spacing`, `require_page_numbers`, `p_value_style`, `spelling`, and `required_sections` for each article type.
 
 `settings.json` picks the default profile and can override settings on top of it, e.g. `{"profile": "generic", "abstract_word_limit": 300}`.
 
-**On the website**, the sidebar has a profile picker, the settings, and every rule with its severity. Adjust them, click **Save these settings as a profile** to download your own `.yaml`, and load it next time with **Load a saved profile**.
+**On the website**, the sidebar has the profile picker, the main settings (peer review, reference style, abstract limit…), and every rule with its severity. Adjust them, click **Save these settings as a profile** to download your own `.yaml`, and load it next time with **Load a saved profile**.
 
 ## Optional extras
 
-### Google Sheets setup (optional, command line only)
+### Google Sheets setup (command line only)
 
 1. Create a Google Cloud project and enable the **Google Sheets API** and **Google Drive API**.
 2. Create a service account, download its JSON key, and save it in this folder as `google_key.json` (never commit this file).
@@ -129,35 +142,69 @@ Save it as `profiles/my_journal.yaml` and run with `--profile my_journal`. Every
 
 | File | Purpose |
 | --- | --- |
-| `web/` | The website: `index.html`, `style.css`, `app.js`, `worker.js` (runs Python in the browser) |
-| `web_entry.py` | Bridge between the website and the checker |
-| `build_web.py` | Builds `web/checker_bundle.zip` and copies the page to the site |
-| `app.py` | Previous website (Streamlit), being retired |
-| `checker.py` | Runs all checks and builds the Excel report |
-| `step1_split_sections.py` | Reads a .docx and splits it into sections |
-| `step2_figures_tables.py` | Figure and table citation checks |
-| `step3_abbreviations.py` | Abbreviation checks |
-| `step4_declarations.py` | Declarations, study details and reference checks |
-| `rules.py` | Catalogue of every rule (ID, name, what it checks) |
+| `checker.py` | Runs all checks, applies the profile, builds the Excel and Word reports; the command line |
+| `rules.py` | Catalogue of every rule: ID, name, what it checks, how to fix it, source |
 | `profiles/` | Journal profiles: which rules run and how serious each is |
 | `settings.py`, `settings.json` | Loads profiles; picks the default one |
+| `readers.py` | Reads PDF, ODT, RTF and LaTeX files |
+| `step1_split_sections.py` | Reads a file and splits it into sections |
+| `step2_figures_tables.py` | Figure and table citations |
+| `step3_abbreviations.py` | Abbreviations |
+| `step4_declarations.py` | Article type, ethics, consent, declarations, study details |
+| `step5_anonymisation.py` | Double-blind checks, and leftover tracked changes/comments |
+| `step6_citations.py` | Citations and reference styles |
+| `step7_policies.py` | Newer declarations: AI use, CRediT, code, consent for publication, registration timing, Helsinki, SAGER… |
+| `step8_guidelines.py` | Study design and EQUATOR reporting guidelines |
+| `step9_integrity.py` | Integrity red flags |
+| `step10_formatting.py` | Formatting and mechanics |
+| `step11_submission.py` | Title pages and cover letters |
+| `web/`, `web_entry.py`, `build_web.py` | The website, its bridge to the checker, and the script that builds it |
 | `send_to_sheets.py` | Google Sheets upload |
-| `tests/` | Labelled test papers and a script that scores the checker (see Testing) |
-
-Each step file can also be run on its own, e.g. `python step3_abbreviations.py manuscript.docx`.
+| `tests/` | Test papers, expected results and the test scripts (see Testing) |
+| `.github/workflows/tests.yml` | Runs the tests on GitHub after every upload |
 
 ## Testing
 
-`tests/` holds 12 invented manuscripts, each with a known list of planted problems: a clean control trial, a flawed trial, a systematic review, an animal study, a school survey, a case report, a paper with unusual headings, a retrospective study, a qualitative study, a narrative review, a letter to the editor, and a paper with superscript citations.
+`tests/papers/` holds 36 invented manuscripts, each with a known list of planted problems, and `tests/converted/` holds 16 PDF, ODT and RTF copies of six of them (made with LibreOffice, plus a PDF compiled from the LaTeX paper with pdflatex). They cover: clean and flawed trials, a systematic review, an animal study, surveys, case reports, a qualitative study, a narrative review, a letter, superscript citations, a properly blinded and a leaky double-blind paper, correct and flawed APA, AMA and IEEE papers, complete and flawed declarations, a diagnostic accuracy study, a humanities essay, a commentary, a trial protocol, a short communication, nine integrity red flags in one paper, formatting done right and wrong, LaTeX source (with and without a .bib file), a cover letter, a title page, and the basic checks.
 
 ```
-python tests/make_test_papers.py    # rebuild the papers
-python tests/run_tests.py           # score the checker
+python tests/test_parts.py     # rules, profiles and the text-parsing helpers
+python tests/run_tests.py      # every paper under every profile
 ```
 
-The script runs every paper against every profile and reports which planted problems were caught, which were missed, and any false alarms. Current result: **16/16 planted problems caught, 0 false alarms, for every profile.** Five of the papers were written as an unseen second round, with expected results fixed before the checker was run on them.
+`run_tests.py` checks every paper under every profile, plus a test-only profile that switches every formatting requirement on (`tests/profiles/`). Expected results live in `tests/expected*.json`: the base results, the extras under double-blind review, under each citation style and under particular profiles. Each converted copy must give the same results as its Word original, apart from what its format can't show. `test_parts.py` also confirms that every one of the 95 rules is triggered by at least one test paper.
+
+Current result: **every planted problem caught under all nine profiles, with no false alarms.** On GitHub, the same tests run automatically after every upload (the *Actions* tab shows a green tick when they pass).
+
+To rebuild the test files: `make_test_papers.py`, `make_double_blind_papers.py`, `make_citation_papers.py`, `make_v2_papers.py`, then `make_converted.py` (needs LibreOffice), in that order.
 
 ## Changelog
+
+**v2.0**
+- Declarations for 2026: generative AI statement, CRediT roles, corresponding author, ORCID iDs and data repositories (for journals that require them), code availability, consent for publication in case reports, trial registered before the study started, Declaration of Helsinki, sex and gender reporting (SAGER), permission for reproduced figures, grant numbers.
+- Reporting guidelines: study design detected and checked against CONSORT, SPIRIT, PRISMA, STROBE, CARE, ARRIVE, STARD, COREQ/SRQR, TRIPOD, CHEERS and SQUIRE (guideline named, key items present).
+- Article types: short communication, commentary/editorial, study protocol, methods paper, data paper, book review and correction, each with its own required sections; more heading names recognised ("Method", "Experimental section", "Index Terms", "Works Cited"…). New humanities profile; APA and IEEE profiles adapted to their disciplines.
+- Integrity red flags: tortured phrases, chatbot leftovers, hidden text and prompt injections, AI tool as author, free-mail addresses, percentage arithmetic, impossible values, self-citation share.
+- Formatting: word, reference and figure limits per article type, title length, running title, abstract structure and headings, keyword count, highlights, line numbers, double spacing, page numbers, p-value style, US/UK spelling, numbers starting sentences.
+- File formats: PDF, OpenDocument, RTF and LaTeX, alongside Word; title pages and cover letters recognised and checked as such.
+- Report: how to fix and source for every rule; Author and Editor views; dismiss false alarms (left out of the downloads); Word report; files tagged with what they were read as.
+- Fixes found by the new tests: guideline years ("STARD 2015") and "observers were trained" were misread; Chicago-style citations with page numbers ("Said 1978, 45") weren't matched.
+- Tests: 36 papers and 16 converted copies under nine profiles; every rule exercised; tests run automatically on GitHub.
+- The Streamlit app is retired: the website at thegreyswan.in/checker replaces it.
+
+**v1.5**
+- Citation and reference styles: author–date citations are now matched to the reference list (previously only numbered); numbered references must be cited in order; author–date lists must be alphabetical; mixed systems flagged; old references (advisory).
+- New `citation_style` setting (APA 7, Harvard, AMA, Vancouver, IEEE) adding style-specific checks of the citation system, in-text form and reference-list format; four new style profiles.
+- Fix: sentences are no longer split after abbreviations such as "approval no." or "et al.", which could hide an ethics approval number or date.
+- Website: Reference style choice in the settings.
+- Four new test papers.
+
+**v1.4**
+- Double-blind review: new anonymisation checks (title page, emails and ORCID iDs, author names in text, headers and footers, Word file properties, first-person self-citation, acknowledgements, named institutions). Placeholders such as "[blinded for review]" are recognised.
+- Profiles have a `review_model` setting (single-blind, double-blind, open); new `generic_double_blind` profile.
+- Every manuscript: tracked changes and comments left in the file are flagged.
+- Website: Peer review choice in the settings.
+- Two new test papers (properly blinded, and leaky).
 
 **v1.3**
 - Journal profiles: rules moved out of the code into `profiles/*.yaml`, with inheritance (`based_on`).
@@ -191,15 +238,16 @@ The script runs every paper against every profile and reports which planted prob
 
 ## Limitations
 
-- Works on .docx only (no PDF yet).
-- Rule-based: it can miss unusual phrasings and may raise false alarms. Treat results as flags for review.
-- Does not check scientific content, language quality, plagiarism or image integrity.
+- Rule-based: it can miss unusual phrasings and may raise false alarms. Treat results as flags for review, and use *dismiss* for false alarms.
+- Reporting-guideline items, integrity flags and reference formats are pattern checks: a prompt to look, not proof.
+- PDFs give a less complete check than Word files (no tracked changes, hidden-text colour, superscripts or layout); old .doc files can't be read.
+- Does not check scientific content, language quality, plagiarism, image integrity, or references against external databases.
 
 ## Roadmap
 
-- PDF input
-- Reference validation against Crossref (invalid DOIs, retracted papers)
+- Reference validation against Crossref (invalid DOIs, retracted papers) — the planned references integrity tool
 - Author verification via ORCID
+- Publisher-specific profiles, verified against each publisher's current instructions
 
 ## How this was built
 

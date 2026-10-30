@@ -1,35 +1,240 @@
 {
-  "01_control_clean_rct.docx": [],
+  "01_control_clean_rct.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Study details|Sex and gender"
+  ],
   "02_flawed_rct.docx": [
     "Abbreviations (Main text)|Not defined",
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
     "Declarations|Ethics approval date",
     "Declarations|Verbal consent",
     "Figures & tables|Figure order",
     "References|Citation not in list",
     "References|Reference not cited",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Sex and gender",
     "Study details|Trial registration"
   ],
   "03_systematic_review.docx": [
     "Abstract|Abstract length",
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Reporting guideline|Guideline items",
     "Study details|PROSPERO registration"
   ],
   "04_animal_study.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
     "Study details|Data older than 2020",
     "Study details|Euthanasia"
   ],
   "05_survey_minors.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
     "Declarations|Consent for minors",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
     "Study details|Inclusion/exclusion criteria",
-    "Study details|Questionnaire"
+    "Study details|Questionnaire",
+    "Study details|Sex and gender"
   ],
-  "06_case_report.docx": [],
-  "07_messy_headings.docx": [],
+  "06_case_report.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named"
+  ],
+  "07_messy_headings.docx": [
+    "Declarations|AI use statement",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named"
+  ],
   "08_retrospective_waiver.docx": [
     "Abbreviations (Abstract)|Not defined",
-    "Study details|Data older than 2020"
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Data older than 2020",
+    "Study details|Sex and gender"
   ],
-  "09_qualitative_interviews.docx": [],
-  "10_narrative_review.docx": [],
-  "11_letter_to_editor.docx": [],
-  "12_superscript_citations.docx": []
+  "09_qualitative_interviews.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Study details|Sex and gender"
+  ],
+  "10_narrative_review.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author"
+  ],
+  "11_letter_to_editor.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author"
+  ],
+  "12_superscript_citations.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Corresponding author",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Sex and gender"
+  ],
+  "13_double_blind_clean.docx": [
+    "Declarations|AI use statement",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Study details|Sex and gender"
+  ],
+  "14_double_blind_leaky.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Structure|Tracked changes / comments",
+    "Study details|Sex and gender"
+  ],
+  "15_apa_clean.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Declaration of Helsinki",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Sex and gender"
+  ],
+  "16_apa_flawed.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Declaration of Helsinki",
+    "References|Citation not in list",
+    "References|Mixed citation systems",
+    "References|Reference list order",
+    "References|Reference not cited",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Sex and gender"
+  ],
+  "17_ama_flawed.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Declaration of Helsinki",
+    "References|Citation order",
+    "Reporting guideline|Guideline items",
+    "Reporting guideline|Guideline named",
+    "Study details|Sex and gender"
+  ],
+  "18_ieee_clean.docx": [
+    "Declarations|AI use statement",
+    "Declarations|CRediT roles",
+    "Declarations|Code availability"
+  ],
+  "19_declarations_complete.docx": [],
+  "20_declarations_flawed_trial.docx": [
+    "Declarations|Code availability",
+    "Declarations|Grant number",
+    "Figures & tables|Permission to reproduce",
+    "Study details|Trial registration timing"
+  ],
+  "21_case_report_no_consent.docx": [
+    "Declarations|Consent for publication"
+  ],
+  "22_diagnostic_accuracy.docx": [
+    "Reporting guideline|Guideline items"
+  ],
+  "23_humanities_essay.docx": [
+    "Declarations|Ethics statement",
+    "References|Old references",
+    "Structure|Discussion section",
+    "Structure|Methods section",
+    "Structure|Results section",
+    "Study details|Sample size",
+    "Study details|Study duration"
+  ],
+  "24_apa_method_heading.docx": [
+    "Structure|Introduction section"
+  ],
+  "25_commentary.docx": [],
+  "26_trial_protocol.docx": [],
+  "27_short_communication.docx": [],
+  "28_integrity_flags.docx": [
+    "Integrity|AI chatbot text",
+    "Integrity|AI tool as author",
+    "Integrity|Free email address",
+    "Integrity|Hidden text",
+    "Integrity|Impossible values",
+    "Integrity|Instructions to AI reviewers",
+    "Integrity|Percentages don't match",
+    "Integrity|Self-citation",
+    "Integrity|Tortured phrases"
+  ],
+  "29_formatting_ok.docx": [],
+  "30_formatting_flawed.docx": [
+    "Formatting|Numbers starting sentences",
+    "Formatting|Spelling",
+    "Formatting|p-values"
+  ],
+  "31_latex_paper.tex": [
+    "Structure|File format"
+  ],
+  "32_latex_bibfile.tex": [
+    "Structure|File format"
+  ],
+  "33_cover_letter.docx": [
+    "Cover letter|Cover letter statements"
+  ],
+  "34_title_page.docx": [
+    "Title page|Title page details"
+  ],
+  "35_basics_flawed.docx": [
+    "Abbreviations (Main text)|Defined but not used",
+    "Abbreviations (Main text)|Defined more than once",
+    "Abbreviations (Main text)|Used before definition",
+    "Abstract|Abstract section",
+    "Abstract|Keywords section",
+    "Declarations|AI use statement",
+    "Declarations|Acknowledgements",
+    "Declarations|Author contributions",
+    "Declarations|Conflict of interest",
+    "Declarations|Consent mode",
+    "Declarations|Data availability",
+    "Declarations|Ethics approval date",
+    "Declarations|Ethics approval number",
+    "Declarations|Ethics committee name",
+    "Declarations|Funding",
+    "Figures & tables|Figure caption",
+    "Figures & tables|Figure citation",
+    "Figures & tables|Table citation",
+    "Figures & tables|Table numbering",
+    "References|Citation check"
+  ],
+  "36_no_ethics_no_references.docx": [
+    "Declarations|Consent",
+    "Declarations|Ethics approval",
+    "References|Reference list",
+    "Structure|References section"
+  ]
 }

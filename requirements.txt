@@ -1,5 +1,6 @@
 python-docx
 openpyxl
 pyyaml
+pypdf
+# optional: only for sending results to Google Sheets (checker.py --sheets)
 gspread
-streamlit
