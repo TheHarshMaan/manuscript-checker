@@ -1,0 +1,20 @@
+# Test-only profile: switches every formatting requirement on. Runs only on the formatting test papers.
+name: TEST formatting requirements
+based_on: generic
+test_papers: [29_formatting_ok.docx, 30_formatting_flawed.docx]
+
+settings:
+  limits:
+    research: {words: 300, references: 4, figures_tables: 2, abstract_words: 120}
+  title_max_words: 15
+  require_running_title: true
+  abstract_structure: structured
+  abstract_headings: [Background, Methods, Results, Conclusion]
+  keywords: {min: 4, max: 6}
+  require_highlights: true
+  highlights: {min: 3, max: 5, max_chars: 85}
+  require_line_numbers: true
+  require_double_spacing: true
+  require_page_numbers: true
+  p_value_style: leading_zero
+  spelling: uk
