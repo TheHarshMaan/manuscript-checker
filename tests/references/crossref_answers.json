@@ -1,0 +1,561 @@
+{
+ "_about": "Answers in the format of Crossref's REST API (https://api.crossref.org/works), written by hand for the tests. live_crossref.py checks the real API still answers in this shape.",
+ "work": {
+  "10.1038/nature14539": {
+   "status": 200,
+   "message": {
+    "DOI": "10.1038/nature14539",
+    "type": "journal-article",
+    "title": [
+     "Deep learning"
+    ],
+    "author": [
+     {
+      "given": "Yann",
+      "family": "LeCun"
+     },
+     {
+      "given": "Yoshua",
+      "family": "Bengio"
+     },
+     {
+      "given": "Geoffrey",
+      "family": "Hinton"
+     }
+    ],
+    "container-title": [
+     "Nature"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2015,
+       5,
+       27
+      ]
+     ]
+    },
+    "published-print": {
+     "date-parts": [
+      [
+       2015,
+       5,
+       28
+      ]
+     ]
+    },
+    "published-online": {
+     "date-parts": [
+      [
+       2015,
+       5,
+       27
+      ]
+     ]
+    }
+   }
+  },
+  "10.1016/s0140-6736(97)11096-0": {
+   "status": 200,
+   "message": {
+    "DOI": "10.1016/s0140-6736(97)11096-0",
+    "type": "journal-article",
+    "title": [
+     "Ileal-lymphoid-nodular hyperplasia, non-specific colitis, and pervasive developmental disorder in children"
+    ],
+    "author": [
+     {
+      "given": "AJ",
+      "family": "Wakefield"
+     },
+     {
+      "given": "SH",
+      "family": "Murch"
+     }
+    ],
+    "container-title": [
+     "The Lancet"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       1998,
+       2
+      ]
+     ]
+    }
+   }
+  },
+  "10.1016/s0140-6736(20)31180-6": {
+   "status": 200,
+   "message": {
+    "DOI": "10.1016/s0140-6736(20)31180-6",
+    "type": "journal-article",
+    "title": [
+     "RETRACTED: Hydroxychloroquine or chloroquine with or without a macrolide for treatment of COVID-19: a multinational registry analysis"
+    ],
+    "author": [
+     {
+      "given": "Mandeep R",
+      "family": "Mehra"
+     },
+     {
+      "given": "Sapan S",
+      "family": "Desai"
+     }
+    ],
+    "container-title": [
+     "The Lancet"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2020,
+       5
+      ]
+     ]
+    }
+   }
+  },
+  "10.5555/example.2021.7": {
+   "status": 200,
+   "message": {
+    "DOI": "10.5555/example.2021.7",
+    "type": "journal-article",
+    "title": [
+     "Sample paper with a correction"
+    ],
+    "author": [
+     {
+      "given": "A",
+      "family": "Author"
+     }
+    ],
+    "container-title": [
+     "Example Journal"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2021,
+       1,
+       10
+      ]
+     ]
+    }
+   }
+  },
+  "10.5555/example.2020.3": {
+   "status": 200,
+   "message": {
+    "DOI": "10.5555/example.2020.3",
+    "type": "journal-article",
+    "title": [
+     "Sample paper under an expression of concern"
+    ],
+    "author": [
+     {
+      "given": "B",
+      "family": "Author"
+     }
+    ],
+    "container-title": [
+     "Example Journal"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2020,
+       5,
+       5
+      ]
+     ]
+    }
+   }
+  },
+  "10.5555/example.2018.9": {
+   "status": 200,
+   "message": {
+    "DOI": "10.5555/example.2018.9",
+    "type": "journal-article",
+    "title": [
+     "Sample paper retracted then reinstated"
+    ],
+    "author": [
+     {
+      "given": "C",
+      "family": "Author"
+     }
+    ],
+    "container-title": [
+     "Example Journal"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2018,
+       1,
+       1
+      ]
+     ]
+    }
+   }
+  },
+  "10.1056/nejmoa2034577": {
+   "status": 200,
+   "message": {
+    "DOI": "10.1056/nejmoa2034577",
+    "type": "journal-article",
+    "title": [
+     "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine"
+    ],
+    "author": [
+     {
+      "given": "Fernando P.",
+      "family": "Polack"
+     },
+     {
+      "given": "Stephen J.",
+      "family": "Thomas"
+     }
+    ],
+    "container-title": [
+     "New England Journal of Medicine"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2020,
+       12,
+       31
+      ]
+     ]
+    }
+   }
+  },
+  "10.1038/nature14593": {
+   "status": 404,
+   "message": null
+  },
+  "10.9999/invented.2024.001": {
+   "status": 404,
+   "message": null
+  },
+  "10.1000/server.down": {
+   "status": 503,
+   "message": null
+  }
+ },
+ "search": {
+  "Deep learning": [
+   {
+    "DOI": "10.1038/nature14539",
+    "type": "journal-article",
+    "title": [
+     "Deep learning"
+    ],
+    "author": [
+     {
+      "given": "Yann",
+      "family": "LeCun"
+     }
+    ],
+    "container-title": [
+     "Nature"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2015,
+       5,
+       27
+      ]
+     ]
+    }
+   }
+  ],
+  "BNT162b2": [
+   {
+    "DOI": "10.1056/nejmoa2034577",
+    "type": "journal-article",
+    "title": [
+     "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine"
+    ],
+    "author": [
+     {
+      "given": "Fernando P.",
+      "family": "Polack"
+     }
+    ],
+    "container-title": [
+     "New England Journal of Medicine"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2020,
+       12,
+       31
+      ]
+     ]
+    }
+   },
+   {
+    "DOI": "10.1056/nejmoa2035389",
+    "type": "journal-article",
+    "title": [
+     "Efficacy and Safety of the mRNA-1273 SARS-CoV-2 Vaccine"
+    ],
+    "author": [
+     {
+      "given": "Lindsey R.",
+      "family": "Baden"
+     }
+    ],
+    "container-title": [
+     "New England Journal of Medicine"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2021,
+       2,
+       4
+      ]
+     ]
+    }
+   }
+  ],
+  "Quantum hand hygiene": [
+   {
+    "DOI": "10.1016/j.ajic.2019.01.001",
+    "type": "journal-article",
+    "title": [
+     "Hand hygiene compliance in intensive care units: a multicentre audit"
+    ],
+    "author": [
+     {
+      "given": "Maria",
+      "family": "Garcia"
+     }
+    ],
+    "container-title": [
+     "American Journal of Infection Control"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2019,
+       6
+      ]
+     ]
+    }
+   },
+   {
+    "DOI": "10.1088/1367-2630/ab1234",
+    "type": "journal-article",
+    "title": [
+     "Quantum coherence in biological systems"
+    ],
+    "author": [
+     {
+      "given": "Wei",
+      "family": "Chen"
+     }
+    ],
+    "container-title": [
+     "New Journal of Physics"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       2019,
+       3
+      ]
+     ]
+    }
+   }
+  ],
+  "Orientalism": [
+   {
+    "DOI": "10.2307/1234567",
+    "type": "journal-article",
+    "title": [
+     "Orientalism reconsidered"
+    ],
+    "author": [
+     {
+      "given": "Ann",
+      "family": "Other"
+     }
+    ],
+    "container-title": [
+     "Cultural Critique"
+    ],
+    "issued": {
+     "date-parts": [
+      [
+       1985
+      ]
+     ]
+    }
+   }
+  ]
+ },
+ "updates": {
+  "10.1016/s0140-6736(20)31180-6": [
+   {
+    "DOI": "10.1016/s0140-6736(20)31324-6",
+    "type": "journal-article",
+    "title": [
+     "Retraction—Hydroxychloroquine or chloroquine with or without a macrolide for treatment of COVID-19: a multinational registry analysis"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.1016/s0140-6736(20)31180-6",
+      "type": "retraction",
+      "label": "Retraction",
+      "source": "publisher",
+      "updated": {
+       "date-parts": [
+        [
+         2020,
+         6,
+         5
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "10.1016/s0140-6736(97)11096-0": [
+   {
+    "DOI": "10.1016/s0140-6736(10)60175-4",
+    "type": "journal-article",
+    "title": [
+     "Retraction: notice"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.1016/s0140-6736(97)11096-0",
+      "type": "retraction",
+      "label": "Retraction",
+      "source": "publisher",
+      "updated": {
+       "date-parts": [
+        [
+         2010,
+         2,
+         2
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "10.5555/example.2021.7": [
+   {
+    "DOI": "10.5555/correction.2022.1",
+    "type": "journal-article",
+    "title": [
+     "Correction: notice"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.5555/example.2021.7",
+      "type": "correction",
+      "label": "Correction",
+      "source": "retraction-watch",
+      "updated": {
+       "date-parts": [
+        [
+         2022,
+         3,
+         15
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "10.5555/example.2020.3": [
+   {
+    "DOI": "10.5555/eoc.2023.2",
+    "type": "journal-article",
+    "title": [
+     "Expression of Concern: notice"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.5555/example.2020.3",
+      "type": "expression_of_concern",
+      "label": "Expression of Concern",
+      "source": "retraction-watch",
+      "updated": {
+       "date-parts": [
+        [
+         2023,
+         6,
+         1
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "10.5555/example.2018.9": [
+   {
+    "DOI": "10.5555/retraction.2019.4",
+    "type": "journal-article",
+    "title": [
+     "Retraction: notice"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.5555/example.2018.9",
+      "type": "retraction",
+      "label": "Retraction",
+      "source": "retraction-watch",
+      "updated": {
+       "date-parts": [
+        [
+         2019,
+         4,
+         1
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "DOI": "10.5555/reinstatement.2020.5",
+    "type": "journal-article",
+    "title": [
+     "Reinstatement: notice"
+    ],
+    "update-to": [
+     {
+      "DOI": "10.5555/example.2018.9",
+      "type": "reinstatement",
+      "label": "Reinstatement",
+      "source": "retraction-watch",
+      "updated": {
+       "date-parts": [
+        [
+         2020,
+         9,
+         1
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ }
+}
