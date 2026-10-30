@@ -19,7 +19,7 @@ from step1_split_sections import split_into_sections   # reuse your step 1 code
 from settings import load_settings
 
 # Abbreviations most journals don't require authors to define.
-# Add journal-specific ones in settings.json -> "extra_ignore_abbreviations".
+# Add journal-specific ones in a profile (profiles/*.yaml) -> settings -> extra_ignore_abbreviations.
 COMMON = {
     # general / places / organisations
     "WHO", "USA", "UK", "UN", "EU", "ID", "IDs", "OK", "UAE",
@@ -134,7 +134,8 @@ def scan(paragraphs, ignore, skip_symbols):
 
 
 def check_abbreviations(path, settings=None):
-    settings = settings or load_settings()
+    """`settings` is the "settings" part of a profile."""
+    settings = settings or load_settings()["settings"]
     ignore = COMMON | set(settings.get("extra_ignore_abbreviations", []))
     skip_symbols = settings.get("skip_gene_and_chemical_symbols", True)
     sections, _ = split_into_sections(path)
@@ -145,7 +146,7 @@ def check_abbreviations(path, settings=None):
                       if name not in SKIP and name != "Abstract" for t in paras],
     }
 
-    issues = []   # (where, check, status, details)
+    issues = []   # (where, check, status, details, rule ID)
 
     for where, paragraphs in parts.items():
         if not paragraphs:
@@ -160,16 +161,16 @@ def check_abbreviations(path, settings=None):
 
         if not_defined:
             issues.append((where, "Not defined", "Missing",
-                           "Used but never defined: " + ", ".join(not_defined)))
+                           "Used but never defined: " + ", ".join(not_defined), "abbr_not_defined"))
         if used_early:
             issues.append((where, "Used before definition", "Concern",
-                           "Appear before their definition: " + ", ".join(used_early)))
+                           "Appear before their definition: " + ", ".join(used_early), "abbr_used_early"))
         if twice:
             issues.append((where, "Defined more than once", "Concern",
-                           "Defined more than once: " + ", ".join(twice)))
+                           "Defined more than once: " + ", ".join(twice), "abbr_defined_twice"))
         if unused:
             issues.append((where, "Defined but not used", "Concern",
-                           "Defined but never used again: " + ", ".join(unused)))
+                           "Defined but never used again: " + ", ".join(unused), "abbr_not_used"))
     return issues
 
 
@@ -191,7 +192,7 @@ def main():
         return
 
     print(f"{len(issues)} issue(s):\n")
-    for where, check, status, details in issues:
+    for where, check, status, details, _rule in issues:
         print(f"[{status}] {where} - {check}: {details}")
 
 

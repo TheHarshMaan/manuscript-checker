@@ -1,5 +1,3 @@
 {
-  "abstract_word_limit": 250,
-  "extra_ignore_abbreviations": [],
-  "skip_gene_and_chemical_symbols": true
+  "profile": "generic"
 }

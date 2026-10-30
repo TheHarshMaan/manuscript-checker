@@ -20,13 +20,16 @@ SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_LINK_HERE"
 
 KEY_FILE = Path(__file__).with_name("google_key.json")
 
-SUMMARY_HEADERS = ["Date checked", "Manuscript", "Result", "Missing", "Concern"]
-ISSUE_HEADERS = ["Date checked", "Manuscript", "Section", "Check", "Status",
+# If your sheet was created by an older version of the checker, delete or rename its
+# "Summary" and "Issues" tabs once, so they are recreated with these columns.
+SUMMARY_HEADERS = ["Date checked", "Manuscript", "Profile", "Result", "Must fix", "Should fix", "Advisory"]
+ISSUE_HEADERS = ["Date checked", "Manuscript", "Profile", "Section", "Check", "Severity", "Status",
                  "Details"]
 
 COLOURS = {
-    "Missing":        {"red": 0.97, "green": 0.80, "blue": 0.68},
-    "Concern":        {"red": 1.00, "green": 0.90, "blue": 0.60},
+    "Must fix":       {"red": 0.97, "green": 0.80, "blue": 0.68},
+    "Should fix":     {"red": 1.00, "green": 0.90, "blue": 0.60},
+    "Advisory":       {"red": 0.87, "green": 0.92, "blue": 0.97},
     "Ready":          {"red": 0.78, "green": 0.94, "blue": 0.81},
     "Needs revision": {"red": 0.97, "green": 0.80, "blue": 0.68},
 }
@@ -64,8 +67,10 @@ def get_tab(spreadsheet, title, headers, status_column, statuses):
     return ws
 
 
-def upload(results):
-    """results = list of (manuscript file name, list of issues)."""
+def upload(results, profile_name=""):
+    """results = list of (manuscript file name, list of issues); profile_name = the profile used."""
+    from checker import verdict, counts
+    from rules import SEVERITY_LABEL
     try:
         import gspread
     except ImportError:
@@ -89,17 +94,17 @@ def upload(results):
         print(f"Google Sheets: could not connect ({e})")
         return False
 
-    summary_tab = get_tab(spreadsheet, "Summary", SUMMARY_HEADERS, 2, ["Ready", "Needs revision"])
-    issues_tab = get_tab(spreadsheet, "Issues", ISSUE_HEADERS, 4, ["Missing", "Concern"])
+    summary_tab = get_tab(spreadsheet, "Summary", SUMMARY_HEADERS, 3, ["Ready", "Needs revision"])
+    issues_tab = get_tab(spreadsheet, "Issues", ISSUE_HEADERS, 5, ["Must fix", "Should fix", "Advisory"])
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     summary_rows, issue_rows = [], []
     for name, issues in results:
-        missing = sum(1 for i in issues if i[2] == "Missing")
-        concern = sum(1 for i in issues if i[2] == "Concern")
-        summary_rows.append([now, name, "Ready" if not issues else "Needs revision", missing, concern])
-        for section, check, status, details in issues:
-            issue_rows.append([now, name, section, check, status, details])
+        c = counts(issues)
+        summary_rows.append([now, name, profile_name, verdict(issues), c["must"], c["should"], c["advisory"]])
+        for i in issues:
+            issue_rows.append([now, name, profile_name, i.section, i.check,
+                               SEVERITY_LABEL[i.severity], i.status, i.details])
 
     summary_tab.append_rows(summary_rows)
     if issue_rows:

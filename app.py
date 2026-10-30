@@ -14,21 +14,24 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import yaml
 
 # Load the checker's own files fresh on every run. Streamlit Cloud updates app.py in place when
 # GitHub changes, but can keep older copies of these files in memory, mixing old and new code.
 import importlib
+import rules as _rules
 import settings as _settings
 import step1_split_sections as _step1
 import step2_figures_tables as _step2
 import step3_abbreviations as _step3
 import step4_declarations as _step4
 import checker as _checker
-for _module in (_settings, _step1, _step2, _step3, _step4, _checker):
+for _module in (_rules, _settings, _step1, _step2, _step3, _step4, _checker):
     importlib.reload(_module)
 
-from checker import check_manuscript, build_workbook
-from settings import load_settings
+from checker import check_manuscript, build_workbook, verdict, counts
+from settings import load_settings, load_profile, list_profiles, merge, check_profile
+from rules import RULES, SEVERITIES, SEVERITY_LABEL
 
 APP_DIR = Path(__file__).parent
 # Images live in assets/, or next to app.py if they were uploaded without the folder
@@ -46,7 +49,7 @@ MUTED = "#A9A49B"      # secondary text
 GOLD = "#C69F70"       # antique gold accent
 CARD = "#1A1D20"       # raised surfaces
 LINE = "#2E2A24"       # warm hairlines
-STATUS_COLOUR = {"Missing": "#E8907F", "Concern": "#E0B86A"}
+SEVERITY_COLOUR = {"Must fix": "#E8907F", "Should fix": "#E0B86A", "Advisory": "#8FB3D9"}
 
 STYLE = f"""
 <style>
@@ -115,24 +118,114 @@ def brand_name():
     return f'<a href="{SITE_URL}" target="_blank">{BRAND}</a>' if SITE_URL else BRAND
 
 
-def run_checks(name, data, settings):
+def run_checks(name, data, profile):
     """Check one uploaded file entirely in memory: nothing is written to disk.
     Returns a list of issues, or None if the file can't be read."""
     try:
-        return check_manuscript(io.BytesIO(data), settings)
+        return check_manuscript(io.BytesIO(data), profile)
     except Exception:
         return None
 
 
 def issues_table(issues):
-    """The issues as a table, with the Status column coloured."""
-    # first four fields only, so older check files that still add a fifth field don't break the table
-    df = pd.DataFrame([tuple(i)[:4] for i in issues], columns=["Section", "Check", "Status", "Details"])
-    colour = lambda v: f"color: {STATUS_COLOUR.get(v, INK)}; font-weight: 600"
+    """The issues as a table, with the Severity column coloured."""
+    df = pd.DataFrame([(i.section, i.check, SEVERITY_LABEL[i.severity], i.status, i.details) for i in issues],
+                      columns=["Section", "Check", "Severity", "Status", "Details"])
+    colour = lambda v: f"color: {SEVERITY_COLOUR.get(v, INK)}; font-weight: 600"
     styler = df.style
     if hasattr(styler, "map"):
-        return styler.map(colour, subset=["Status"])
-    return styler.applymap(colour, subset=["Status"])
+        return styler.map(colour, subset=["Severity"])
+    return styler.applymap(colour, subset=["Severity"])
+
+
+def uploaded_profile(file):
+    """A profile saved from this page (or written by hand), combined with the profile it is based on."""
+    data = yaml.safe_load(file.getvalue().decode("utf-8")) or {}
+    if not isinstance(data, dict):
+        raise ValueError("this file doesn't look like a profile")
+    parent = data.pop("based_on", None) or "generic"     # anything not set falls back to generic
+    profile = merge(load_profile(parent), data)
+    profile["id"] = Path(file.name).stem
+    profile.setdefault("name", profile["id"])
+    check_profile(profile)
+    return profile
+
+
+def profile_sidebar():
+    """Profile picker, settings and per-rule severities. Returns the profile to check with."""
+    profiles = list_profiles()
+    default_id = load_settings().get("id", "generic")
+    ids = list(profiles)
+
+    upload = st.file_uploader("Load a saved profile (.yaml)", type=["yaml", "yml"],
+                              help="A profile you downloaded from this page earlier, or wrote yourself.")
+    base = None
+    if upload:
+        try:
+            base = uploaded_profile(upload)
+            st.success(f"Using your profile: {base['name']}")
+        except Exception as e:
+            st.error(f"Could not use that profile: {e}")
+    if base is None:
+        chosen = st.selectbox("Journal profile", ids, index=ids.index(default_id) if default_id in ids else 0,
+                              format_func=lambda p: profiles[p])
+        base = load_profile(chosen)
+    if base.get("description"):
+        st.caption(base["description"])
+
+    key = base["id"]          # widgets reset when the profile changes
+    s = base.get("settings", {})
+    limit = st.number_input("Abstract word limit", min_value=50, max_value=1000,
+                            value=int(s.get("abstract_word_limit", 250)), step=10, key=f"limit_{key}")
+    cutoff = st.number_input("Flag data collected before", min_value=1950, max_value=2100,
+                             value=int(s.get("data_cutoff_year", 2020)), step=1, key=f"cutoff_{key}",
+                             help="Rule: Old data")
+    extra = st.text_area("Abbreviations to ignore (comma-separated)",
+                         value=", ".join(s.get("extra_ignore_abbreviations", [])), key=f"extra_{key}",
+                         help="Abbreviations this journal doesn't require authors to define, e.g. ICU, MIC")
+    skip_symbols = st.checkbox("Skip gene, cell-line and chemical names",
+                               value=bool(s.get("skip_gene_and_chemical_symbols", True)), key=f"skip_{key}",
+                               help="E.g. TP53, MCF-7, NaCl are not flagged unless the authors define them.")
+
+    rules = dict(base.get("rules", {}))
+    with st.expander("Rules and severities"):
+        st.caption("Must fix and Should fix make a manuscript 'Needs revision'; Advisory items are "
+                   "shown but don't block it. Off skips the check.")
+        area = None
+        for rule_id, (rule_area, label, what) in RULES.items():
+            if rule_area != area:
+                area = rule_area
+                st.markdown(f"**{area}**")
+            current = rules.get(rule_id, "should")
+            rules[rule_id] = st.selectbox(label, SEVERITIES, index=SEVERITIES.index(current),
+                                          format_func=SEVERITY_LABEL.get, help=what, key=f"rule_{key}_{rule_id}")
+
+    profile = dict(base)
+    profile["settings"] = merge(s, {
+        "abstract_word_limit": int(limit),
+        "data_cutoff_year": int(cutoff),
+        "extra_ignore_abbreviations": [a.strip() for a in extra.split(",") if a.strip()],
+        "skip_gene_and_chemical_symbols": skip_symbols,
+    })
+    profile["rules"] = rules
+
+    # Save the adjusted profile: only what differs from the profile it started from
+    changed_settings = {k: v for k, v in profile["settings"].items() if s.get(k) != v}
+    changed_rules = {r: v for r, v in rules.items() if base.get("rules", {}).get(r, "should") != v}
+    if changed_settings or changed_rules:
+        profile["name"] = f"{base['name']} (adjusted)"
+        saved = {"name": profile["name"], "based_on": base["id"] if base["id"] in profiles else None}
+        if saved["based_on"] is None:      # an uploaded profile: save it whole
+            saved = {k: v for k, v in profile.items() if k != "id"}
+        else:
+            if changed_settings:
+                saved["settings"] = changed_settings
+            if changed_rules:
+                saved["rules"] = changed_rules
+        st.download_button("Save these settings as a profile", file_name="my_profile.yaml",
+                           data=yaml.safe_dump(saved, sort_keys=False, allow_unicode=True),
+                           help="Load it again later with 'Load a saved profile' above.")
+    return profile
 
 
 def eyebrow():
@@ -188,28 +281,15 @@ ethics and consent statements, declarations and references.</p>
 </div>
 """, unsafe_allow_html=True)
 
-    # --- Sidebar: brand and settings
-    defaults = load_settings()
+    # --- Sidebar: brand and journal profile
     with st.sidebar:
         logo = find_asset("the_grey_swan_logo.png")
         if logo:
             st.image(logo, width=250)
         st.markdown(f'<div class="gs-tag">Editorial · {TAGLINE}</div>', unsafe_allow_html=True)
         st.markdown('<hr class="gs-rule">', unsafe_allow_html=True)
-        st.subheader("Settings")
-        limit = st.number_input("Abstract word limit", min_value=50, max_value=1000,
-                                value=int(defaults["abstract_word_limit"]), step=10)
-        extra = st.text_area("Abbreviations to ignore (comma-separated)",
-                             value=", ".join(defaults["extra_ignore_abbreviations"]),
-                             help="Abbreviations this journal doesn't require authors to define, e.g. ICU, MIC")
-        skip_symbols = st.checkbox("Skip gene, cell-line and chemical names", value=True,
-                                   help="E.g. TP53, MCF-7, NaCl are not flagged unless the authors define them.")
-
-    settings = {
-        "abstract_word_limit": int(limit),
-        "extra_ignore_abbreviations": [a.strip() for a in extra.split(",") if a.strip()],
-        "skip_gene_and_chemical_symbols": skip_symbols,
-    }
+        st.subheader("Journal profile")
+        profile = profile_sidebar()
 
     files = st.file_uploader("Upload one or more .docx manuscripts", type=["docx"],
                              accept_multiple_files=True)
@@ -221,19 +301,20 @@ ethics and consent statements, declarations and references.</p>
     results = []
     with st.spinner("Checking…"):
         for f in files:
-            results.append((f.name, run_checks(f.name, f.getvalue(), settings)))
+            results.append((f.name, run_checks(f.name, f.getvalue(), profile)))
 
     # --- Summary line
     readable = [(n, i) for n, i in results if i is not None]
-    ready = sum(1 for _, i in readable if not i)
+    ready = sum(1 for _, i in readable if verdict(i) == "Ready")
     st.subheader("Results")
+    st.caption(f"Checked against: {profile['name']}")
     st.write(f"{len(results)} file(s) checked: {ready} ready, "
              f"{len(readable) - ready} need revision, {len(results) - len(readable)} could not be read.")
 
     # --- Excel download for everything
     if readable:
         buffer = io.BytesIO()
-        build_workbook(results).save(buffer)
+        build_workbook(results, profile["name"]).save(buffer)
         st.download_button("Download Excel report", data=buffer.getvalue(),
                            file_name="screening_report.xlsx",
                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -243,9 +324,9 @@ ethics and consent statements, declarations and references.</p>
         if issues is None:
             st.error(f"**{name}**: could not be read. Make sure it is a valid .docx file.")
             continue
-        missing = sum(1 for i in issues if i[2] == "Missing")
-        concern = sum(1 for i in issues if i[2] == "Concern")
-        title = f"{name}: ready" if not issues else f"{name}: {missing} missing, {concern} concern"
+        c = counts(issues)
+        title = (f"{name}: ready" if verdict(issues) == "Ready" else f"{name}: needs revision") + (
+            f" ({c['must']} must fix, {c['should']} should fix, {c['advisory']} advisory)" if issues else "")
         with st.expander(title, expanded=len(results) == 1):
             if not issues:
                 st.success("All checks passed.")

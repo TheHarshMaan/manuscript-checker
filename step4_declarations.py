@@ -75,18 +75,18 @@ def study_type(sections):
 # ---------------------------------------------------------------------------
 # Declarations
 # ---------------------------------------------------------------------------
-# Each declaration: (name, heading name from step 1, words that show it is present in the text)
+# Each declaration: (name, heading name from step 1, words that show it is present in the text, rule ID)
 DECLARATIONS = [
     ("Conflict of interest", "Conflict of interest",
-     r"conflicts? of interest|competing interests?|declare[sd]? no|nothing to disclose"),
+     r"conflicts? of interest|competing interests?|declare[sd]? no|nothing to disclose", "coi_statement"),
     ("Funding", "Funding",
-     r"\bfund(ing|ed)\b|\bgrant\b|financial support|received no specific"),
+     r"\bfund(ing|ed)\b|\bgrant\b|financial support|received no specific", "funding_statement"),
     ("Author contributions", "Author contributions",
-     r"author(s'|s)? contributions?|contributed to|CRediT|conceptuali[sz]ation"),
+     r"author(s'|s)? contributions?|contributed to|CRediT|conceptuali[sz]ation", "author_contributions"),
     ("Acknowledgements", "Acknowledgements",
-     r"acknowledg"),
+     r"acknowledg", "acknowledgements"),
     ("Data availability", "Data availability",
-     r"data availab|available from the corresponding author|available on (reasonable )?request|deposited in"),
+     r"data availab|available from the corresponding author|available on (reasonable )?request|deposited in", "data_availability"),
 ]
 
 SAMPLE_WORDS = (r"patients?|participants?|subjects?|respondents?|isolates?|samples?|"
@@ -103,15 +103,15 @@ COMMITTEE = r"ethics committee|ethical committee|review board|\bIRB\b|\bIEC\b|\b
 
 
 def check_declarations(sections):
-    issues = []   # (section, check, status, details)
+    issues = []   # (section, check, status, details, rule ID)
     headings = {name for name, _ in sections}
     body = " ".join(t for name, paras in sections if name not in ("References",) for t in paras)
     human, animal, study = study_type(sections)
 
     # --- Simple present/absent declarations
-    for name, heading, words in DECLARATIONS:
+    for name, heading, words, rule in DECLARATIONS:
         if heading not in headings and not has(words, body):
-            issues.append(("Declarations", name, "Missing", f"No {name.lower()} statement found"))
+            issues.append(("Declarations", name, "Missing", f"No {name.lower()} statement found", rule))
 
     if article_type(sections) in ("letter", "narrative review"):
         return issues   # no participants: ethics and consent statements don't apply
@@ -123,54 +123,56 @@ def check_declarations(sections):
         pass   # reviews of published studies usually don't need an ethics statement
     elif not ethics_text and not (human or animal):
         issues.append(("Declarations", "Ethics statement", "Concern",
-                       "No ethics statement found (study does not appear to involve humans or animals)"))
+                       "No ethics statement found (study does not appear to involve humans or animals)", "ethics_statement"))
     elif not ethics_text:
-        issues.append(("Declarations", "Ethics approval", "Missing", "No ethics statement found"))
+        issues.append(("Declarations", "Ethics approval", "Missing", "No ethics statement found", "ethics_approval"))
     elif has(r"not required|waived|exempt|not applicable", ethics_text) and (not (human or animal) or is_case_report(sections)):
         pass   # e.g. an in vitro study, or a single case report where consent for publication is what matters
     elif has(r"not required|waived|exempt", ethics_text) and not has(COMMITTEE, ethics_text):
         issues.append(("Declarations", "Ethics approval", "Concern",
-                       "Ethics approval stated as not required/exempt, without naming a committee"))
+                       "Ethics approval stated as not required/exempt, without naming a committee", "ethics_approval"))
     else:
         if not has(COMMITTEE, ethics_text):
             issues.append(("Declarations", "Ethics committee name", "Missing",
-                           "Ethics statement does not name the committee"))
+                           "Ethics statement does not name the committee", "ethics_committee"))
         if not re.search(APPROVAL_NO, ethics_text, re.IGNORECASE):
             issues.append(("Declarations", "Ethics approval number", "Missing",
-                           "No approval/reference number found in the ethics statement"))
+                           "No approval/reference number found in the ethics statement", "ethics_number"))
         if not has(DATE, ethics_text):
             issues.append(("Declarations", "Ethics approval date", "Missing",
-                           "No approval date found in the ethics statement"))
+                           "No approval date found in the ethics statement", "ethics_date"))
 
     # --- Consent (only expected for human studies)
     consent_text = sentences_with(r"consent", body)
     if human and not consent_text:
-        issues.append(("Declarations", "Consent", "Missing", "No consent statement found"))
+        issues.append(("Declarations", "Consent", "Missing", "No consent statement found", "consent"))
     elif consent_text:
         written = has(r"written", consent_text)
         verbal = has(r"verbal|oral", consent_text)
         waived = has(r"waive|not required|exempt", consent_text)
         if waived and (written or verbal):
             issues.append(("Declarations", "Consent", "Concern",
-                           "Consent statement is contradictory (mentions both consent and a waiver)"))
+                           "Consent statement is contradictory (mentions both consent and a waiver)", "consent"))
         elif waived and not has(COMMITTEE, consent_text):
             issues.append(("Declarations", "Consent", "Concern",
-                           "Consent waiver does not say who granted it"))
+                           "Consent waiver does not say who granted it", "consent"))
         elif not (written or verbal or waived):
             issues.append(("Declarations", "Consent mode", "Concern",
-                           "Consent mentioned but not whether written or verbal"))
+                           "Consent mentioned but not whether written or verbal", "consent_mode"))
         if verbal and not written:
             issues.append(("Declarations", "Verbal consent", "Concern",
-                           "Only verbal consent mentioned"))
+                           "Only verbal consent mentioned", "verbal_consent"))
 
     # --- Minors
     if has(MINOR_WORDS, study) and consent_text and not has(r"parent|guardian|legally authori[sz]ed", consent_text):
         issues.append(("Declarations", "Consent for minors", "Concern",
-                       "Study appears to involve minors; consent does not mention parents/guardians"))
+                       "Study appears to involve minors; consent does not mention parents/guardians", "consent_minors"))
     return issues
 
 
-def check_study_details(sections):
+def check_study_details(sections, settings=None):
+    """`settings` is the "settings" part of a profile (only data_cutoff_year is used here)."""
+    cutoff = int((settings or {}).get("data_cutoff_year", 2020))
     issues = []
     body = " ".join(t for name, paras in sections if name != "References" for t in paras)
     methods = " ".join(t for name, paras in sections if name == "Methods" for t in paras)
@@ -187,7 +189,7 @@ def check_study_details(sections):
     if review:
         pass   # reviews report included studies, checked by peer review
     elif not re.search(r"\bn\s*=\s*\d+|\b" + number + r"\s+([a-z\-]+\s+){0,2}(" + units + r")\b", body, re.IGNORECASE):
-        issues.append(("Study details", "Sample size", "Missing", "No sample size found"))
+        issues.append(("Study details", "Sample size", "Missing", "No sample size found", "sample_size"))
 
     # --- Study period and data age
     period = sentences_with(r"\b(19|20)\d{2}\b", where)
@@ -197,39 +199,38 @@ def check_study_details(sections):
     if review:
         pass   # in reviews, years are publication dates, not data collection
     elif not years:
-        issues.append(("Study details", "Study duration", "Missing", "No study period found in the Methods"))
-    elif min(years) < 2020:
-        issues.append(("Study details", "Data older than 2020", "Concern",
+        issues.append(("Study details", "Study duration", "Missing", "No study period found in the Methods", "study_period"))
+    elif min(years) < cutoff:
+        issues.append(("Study details", f"Data older than {cutoff}", "Concern",
                        f"Data collection appears to date from {min(years)}"
-                       + (f"–{max(years)}" if max(years) != min(years) else ""),
-))
+                       + (f"–{max(years)}" if max(years) != min(years) else ""), "data_age"))
 
     # --- Inclusion / exclusion criteria (human studies)
     if human:
         if not has(r"inclusion", where) or not has(r"exclusion|excluded", where):
             issues.append(("Study details", "Inclusion/exclusion criteria", "Missing",
-                           "Inclusion and/or exclusion criteria not found in the Methods"))
+                           "Inclusion and/or exclusion criteria not found in the Methods", "inclusion_exclusion"))
 
     # --- Questionnaires / interviews
     q_text = sentences_with(r"questionnaire|survey|interview|likert|scale was used", body)
     if q_text and not has(r"supplementa|appendix|annex", q_text):
         issues.append(("Study details", "Questionnaire", "Concern",
-                       "Study uses a questionnaire/survey/interview"))
+                       "Study uses a questionnaire/survey/interview, but it is not mentioned as supplied", "questionnaire"))
 
     # --- Animal studies
     if animal and not has(r"euthan|sacrific|humane end", body):
         issues.append(("Study details", "Euthanasia", "Concern",
-                       "Animal study without a euthanasia/humane endpoint statement"))
+                       "Animal study without a euthanasia/humane endpoint statement", "euthanasia"))
 
     # --- Registration: only when the study type needs it
     if has(r"randomi[sz]ed (controlled )?trial|clinical trial|\bRCT\b", body):
         if not has(r"CTRI/\d{4}|NCT\d{8}|ISRCTN\d+|ACTRN\d+|ChiCTR|DRKS\d+|EudraCT|trial registration", body):
             issues.append(("Study details", "Trial registration", "Missing",
-                           "Appears to be a clinical trial; no registration number found"))
+                           "Appears to be a clinical trial; no registration number found", "trial_registration"))
     if has(r"systematic review|meta-analys", body):
         if not has(r"PROSPERO|CRD\d{8,}", body):
             issues.append(("Study details", "PROSPERO registration", "Missing",
-                           "Appears to be a systematic review; no PROSPERO number found"))
+                           "Appears to be a systematic review; no PROSPERO number found", "prospero"))
     return issues
 
 
@@ -237,7 +238,7 @@ def check_references(sections):
     issues = []
     refs = [t for name, paras in sections if name == "References" for t in paras]
     if not refs:
-        issues.append(("References", "Reference list", "Missing", "No References section found"))
+        issues.append(("References", "Reference list", "Missing", "No References section found", "reference_list"))
         return issues
 
     numbered = sum(1 for r in refs if re.match(r"^\[?\d+[.)\]]?\s", r)) >= len(refs) / 2
@@ -256,7 +257,7 @@ def check_references(sections):
 
     if not cited:
         issues.append(("References", "Citation check", "Concern",
-                       "No bracketed citations like [1] found (may use superscripts)"))
+                       "No bracketed citations like [1] found (may use superscripts)", "citation_format"))
         return issues
 
     total = len(refs)
@@ -264,10 +265,10 @@ def check_references(sections):
     never = sorted(set(range(1, total + 1)) - cited)
     if beyond:
         issues.append(("References", "Citation not in list", "Missing",
-                       f"Cited in text but not in the list: {', '.join(map(str, beyond))}"))
+                       f"Cited in text but not in the list: {', '.join(map(str, beyond))}", "citation_not_in_list"))
     if never:
         issues.append(("References", "Reference not cited", "Concern",
-                       f"In the list but never cited: {', '.join(map(str, never))}"))
+                       f"In the list but never cited: {', '.join(map(str, never))}", "reference_not_cited"))
     return issues
 
 
@@ -292,7 +293,7 @@ def main():
         print("No declaration/study-detail issues found.")
         return
     print(f"{len(issues)} issue(s):\n")
-    for section, check, status, details in issues:
+    for section, check, status, details, _rule in issues:
         print(f"[{status}] {section} - {check}: {details}")
 
 
