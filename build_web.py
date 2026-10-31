@@ -34,7 +34,7 @@ CHECKER_FILES = ["rules.py", "settings.py", "checker.py", "web_entry.py", "step1
 # lxml and pyyaml are not here: the browser version of Python already provides them.
 LIBRARIES = ["docx", "openpyxl", "et_xmlfile", "pypdf"]
 # Files the page needs, besides the bundle
-PAGE_FILES = {"checker": (WEB, ["index.html", "app.js"] + SHARED),
+PAGE_FILES = {"checker": (WEB, ["index.html", "app.js", "options.json"] + SHARED),
               "references": (REFERENCES, ["index.html", "refs.js", "refs.css"] + SHARED)}
 
 
@@ -63,9 +63,21 @@ def build():
     for img in ("grey_swan_emblem.png", "favicon.png"):
         if (HERE / img).exists():
             shutil.copy(HERE / img, WEB / img)
+    write_options()
     for name in SHARED:                       # the reference checker uses the same styles, worker and bundle
         shutil.copy(WEB / name, REFERENCES / name)
     print(f"Built {BUNDLE.relative_to(HERE)} ({BUNDLE.stat().st_size / 1e6:.1f} MB) for web/ and web_references/")
+
+
+def write_options():
+    """The journal profiles, review models and citation styles, for the account page's "default profile" choice."""
+    import json
+    sys.path.insert(0, str(HERE))
+    from settings import list_profiles
+    from rules import REVIEW_MODELS, CITATION_STYLES
+    options = {"profiles": [{"id": pid, "name": name} for pid, name in list_profiles().items()],
+               "review_models": REVIEW_MODELS, "citation_styles": CITATION_STYLES}
+    (WEB / "options.json").write_text(json.dumps(options, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 def copy_to(site):
